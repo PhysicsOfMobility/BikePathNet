@@ -1,0 +1,21 @@
+name: BikePathNet
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - r-essentials
+  - rpy2
+  - networkit
+  - pyproj
+  - networkx
+  - contextily
+  - osmnx
+  - shapely
+  - h5py
+  - matplotlib
+  - numpy-base
+  - pandas
+  - rtree
+  - geopandas
+  - scipy
