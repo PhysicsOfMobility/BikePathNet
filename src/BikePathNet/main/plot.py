@@ -821,7 +821,7 @@ def plot_dynamic_vs_static(save, paths, params):
     ax2.tick_params(axis='y', labelsize=params["fs_ticks"], width=0.5)
     ax2.tick_params(axis='x', labelsize=params["fs_ticks"], width=0.5)
     ax2.xaxis.set_major_locator(ticker.MultipleLocator(0.2))
-    ax2.yaxis.set_major_locator(ticker.MultipleLocator(0.25))
+    ax2.yaxis.set_major_locator(ticker.MultipleLocator(0.1))
     ax2.yaxis.set_minor_locator(AutoMinorLocator())
     ax2.xaxis.set_minor_locator(AutoMinorLocator())
 
