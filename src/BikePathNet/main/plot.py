@@ -813,7 +813,7 @@ def plot_dynamic_vs_static(save, paths, params):
     df_npw = [i / tfdt_npw[end_npw + 1] for i in tfdt_npw[:end_npw + 1]]
     ax2.plot(bpp_npw, df_npw, lw=params["lw_ed"], label='Static Cyc', c='C2')
 
-    ax2.set_ylabel(r'perceived distance traveled $\mathcal{L}(m)$',
+    ax2.set_ylabel(r'perceived distance traveled $\mathcal{L}(\lambda)$',
                    fontsize=params["fs_axl"])
     ax2.set_xlabel(r'normalized relative length of bike paths $\lambda$',
                    fontsize=params["fs_axl"])
