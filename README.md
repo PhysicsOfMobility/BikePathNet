@@ -8,7 +8,7 @@ I strongly recommend using Linux (e.g. openSUSE Tumbleweed). With Windows, there
 
 1. Install the dependencies
 
-There are two options to install the dependencies: Conda or pure Python virtualenv. Both should not take more than 20-25 minutes to set up.
+   There are two options to install the dependencies: Conda or pure Python virtualenv. Both should not take more than 20-25 minutes to set up.
    1. Conda
 
       Check that you have Latex installed outside of conda, as the conda version of Latex is currently broken. Use the `conda-env.yml` file to create a conda environment: `conda env create -f conda-env.yml`. The environment will be called `BikePathNet`, activate the environment with `conda activate BikePathNet`.
@@ -25,14 +25,16 @@ There are two options to install the dependencies: Conda or pure Python virtuale
       * Latex
    
       Create Python venv and install Python requirements.
-   ```bash
-    # Create a new virtualenv and activate it
-    python3 -m venv venv
-    source venv/bin/activate
-    # Install dependencies
-    pip install cython
-    pip install -r requirements.txt
-    ```
+      ````bash
+      # Create a new virtualenv and activate it
+      python3 -m venv venv
+      source venv/bin/activate
+      # Install dependencies
+      pip install cython
+      pip install -r requirements.txt
+      ````
+
+
 2. Install the package
 
    Make sure you activated the conda env or Python virtualenv, and you are executing the command from the project folder.
