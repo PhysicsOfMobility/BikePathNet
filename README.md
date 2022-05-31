@@ -6,22 +6,23 @@ This is the source code for the paper "Demand-driven design of bicycle infrastru
 
 I strongly recommend using Linux (e.g. openSUSE Tumbleweed). With Windows, there are major problems with Conda and R, which means that the code often cannot be executed there.
 
-1. Install the dependencies 
+1. Install the dependencies
+
 There are two options to install the dependencies: Conda or pure Python virtualenv. Both should not take more than 20-25 minutes to set up.
    1. Conda
 
-      Use the `conda-env.yml` file to create a conda environment: `conda env create -f conda-env.yml`
-      The environment will be called `BikePathNet`, activate the environment with `conda activate BikePathNet`
+      Check that you have Latex installed outside of conda, as the conda version of Latex is currently broken. Use the `conda-env.yml` file to create a conda environment: `conda env create -f conda-env.yml`. The environment will be called `BikePathNet`, activate the environment with `conda activate BikePathNet`.
 
-   2. Python virtualenv (bit more complicated)
+   2. Python virtualenv
    
       Check if you have installed the following dependencies
       * Python 3 (>= 3.6) including development libraries
       * PROJ (>= 8.0)
-      * R (>=3.6.3)
+      * R (>=3.6.1)
       * g++ (>= 5.3)
       * cmake (>= 3.5)
       * Build System: Make or Ninja
+      * Latex
    
       Create Python venv and install Python requirements.
    ```bash
