@@ -440,7 +440,7 @@ def plot_mode(city, save, data, data_ps, nxG_plot, stations, end, hf_group,
     ax12.yaxis.set_minor_locator(AutoMinorLocator())
     ax12.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
 
-    ax1.set_xlabel('normalized fraction of bike paths m',
+    ax1.set_xlabel(r'normalized relative length of bike paths $\lambda$',
                    fontsize=params["fs_axl"])
     if params["titles"]:
         ax1.set_title('Bikeability and Cost', fontsize=params["fs_title"])
@@ -642,7 +642,7 @@ def plot_comp_hom_demand(city, save, bpp_ed, bpp_hom, ba_ed, ba_hom,
     ax.yaxis.set_minor_locator(AutoMinorLocator())
     ax.xaxis.set_minor_locator(AutoMinorLocator())
 
-    ax.set_xlabel('normalized fraction of bike paths m',
+    ax.set_xlabel(r'normalized relative length of bike paths $\lambda$',
                   fontsize=params["fs_axl"])
     ax.xaxis.set_minor_locator(AutoMinorLocator())
 
