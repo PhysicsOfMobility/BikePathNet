@@ -284,7 +284,7 @@ def plot_bp_comparison(city, save, G, ee_algo, ee_cs, bpp_algo, bpp_cs,
         if mode == 'algo':
             ax.set_title(f'{city}: Algorithm', fontsize=params["fs_title"])
         elif mode == 'p+s':
-            ax.set_title(f'{city}: Primary/Secondary',
+            ax.set_title(f'{city}: Primary + Secondary',
                          fontsize=params["fs_title"])
         elif mode == 'diff':
             ax.set_title(f'{city}: Comparison', fontsize=params["fs_title"])
@@ -769,7 +769,6 @@ def plot_dynamic_vs_static(save, paths, params):
     ax1.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
     ax1.yaxis.set_minor_locator(AutoMinorLocator())
     ax1.xaxis.set_minor_locator(AutoMinorLocator())
-
     ax1.set_xlabel(r'normalized relative length of bike paths $\lambda$',
                    fontsize=params["fs_axl"])
 
@@ -794,6 +793,11 @@ def plot_dynamic_vs_static(save, paths, params):
 
     axins1.tick_params(axis='y', length=2, width=0.5, pad=0.5, labelsize=4)
     axins1.tick_params(axis='x', length=2, width=0.5, pad=0.5, labelsize=4)
+
+    if params["titles"]:
+        ax1.set_title('Bikeability', fontsize=params["fs_title"])
+    if params["legends"]:
+        ax1.legend(loc='lower right', fontsize=params["fs_legend"])
 
     fig1.savefig(
         f'{paths["plot_folder"]}results/{save}/{save}_ba_comp'
@@ -846,6 +850,11 @@ def plot_dynamic_vs_static(save, paths, params):
     axins2.tick_params(axis='y', length=2, width=0.5, pad=0.5, labelsize=4)
     axins2.tick_params(axis='x', length=2, width=0.5, pad=0.5, labelsize=4)
 
+    if params["titles"]:
+        ax2.set_title('Perceived Distance', fontsize=params["fs_title"])
+    if params["legends"]:
+        ax2.legend(loc='lower right', fontsize=params["fs_legend"])
+
     fig2.savefig(
         f'{paths["plot_folder"]}results/{save}/{save}_perceived_dist_comp'
         f'.{params["plot_format"]}', bbox_inches='tight')
@@ -871,7 +880,11 @@ def plot_dynamic_vs_static(save, paths, params):
 
     ax3.set_xlabel(r'normalized relative length of bike paths $\lambda$',
                    fontsize=params["fs_axl"])
-    ax3.set_title('Fraction on street', fontsize=params["fs_title"])
+
+    if params["titles"]:
+        ax3.set_title('Fraction on Street', fontsize=params["fs_title"])
+    if params["legends"]:
+        ax3.legend(loc='upper right', fontsize=params["fs_legend"])
 
     fig3.savefig(
         f'{paths["plot_folder"]}results/{save}/{save}_len_on_street_comp'
