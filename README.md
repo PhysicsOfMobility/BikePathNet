@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/497852121.svg)](https://zenodo.org/badge/latestdoi/497852121)
+
 # Demand-driven design of bicycle infrastructure networks for improved urban bikeability
 
 This is the source code for the paper "Demand-driven design of bicycle infrastructure networks for improved urban bikeability" by C. Steinacker, D.-M. Storch, M. Timme, and M. Schröder.
