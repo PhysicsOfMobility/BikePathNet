@@ -30,9 +30,9 @@ def get_street_type(G, edge, nk2nx=None, multi=False):
         else:
             edge = nk2nx[(edge[1], edge[0])]
     if multi:
-        street_type = G[edge[0]][edge[1]][0]['highway']
+        street_type = G[edge[0]][edge[1]][0]["highway"]
     else:
-        street_type = G[edge[0]][edge[1]]['highway']
+        street_type = G[edge[0]][edge[1]]["highway"]
     if isinstance(street_type, str):
         return street_type
     else:
@@ -57,14 +57,14 @@ def get_street_type_cleaned(G, edge, nk2nx=None, multi=False):
     :rtype: str
     """
     st = get_street_type(G, edge, nk2nx, multi=multi)
-    if st in ['primary', 'primary_link', 'trunk', 'trunk_link']:
-        return 'primary'
-    elif st in ['secondary', 'secondary_link']:
-        return 'secondary'
-    elif st in ['tertiary', 'tertiary_link']:
-        return 'tertiary'
+    if st in ["primary", "primary_link", "trunk", "trunk_link"]:
+        return "primary"
+    elif st in ["secondary", "secondary_link"]:
+        return "secondary"
+    elif st in ["tertiary", "tertiary_link"]:
+        return "tertiary"
     else:
-        return 'residential'
+        return "residential"
 
 
 def get_all_street_types(G, multi=False):
@@ -122,9 +122,9 @@ def get_street_length(G, edge, nk2nx=None, multi=False):
         else:
             edge = nk2nx[(edge[1], edge[0])]
     if multi:
-        length = G[edge[0]][edge[1]][0]['length']
+        length = G[edge[0]][edge[1]][0]["length"]
     else:
-        length = G[edge[0]][edge[1]]['length']
+        length = G[edge[0]][edge[1]]["length"]
     return length
 
 
@@ -140,8 +140,8 @@ def get_cost(edge, edge_dict, cost_dict):
     :return: Cost of the edge
     :rtype: float
     """
-    street_type = edge_dict[edge]['street type']
-    street_length = edge_dict[edge]['real length']
+    street_type = edge_dict[edge]["street type"]
+    street_length = edge_dict[edge]["real length"]
     return street_length * cost_dict[street_type]
 
 
@@ -175,8 +175,8 @@ def get_trip_edges(edges_dict, trip_nodes):
     """
     edge_sequence = []
     for i in range(len(trip_nodes) - 1):
-        f_n = trip_nodes[i]         # First node
-        s_n = trip_nodes[i + 1]     # Second node of the edge
+        f_n = trip_nodes[i]  # First node
+        s_n = trip_nodes[i + 1]  # Second node of the edge
         # Dict doesn't accept (2, 1) for undirected edge (1, 2):
         if (f_n, s_n) in edges_dict:
             edge_sequence.append((f_n, s_n))
@@ -198,22 +198,25 @@ def get_minimal_loaded_edge(edge_dict, penalty=True):
     :return: minimal loaded edge
     :rtype: Tuple of integers
     """
-    edges = {edge: edge_info for edge, edge_info in edge_dict.items()
-             if edge_info['bike path']}
+    edges = {
+        edge: edge_info
+        for edge, edge_info in edge_dict.items()
+        if edge_info["bike path"]
+    }
 
     if penalty:
-        edges_load = {edge: edge_info['load'] * edge_info['penalty']
-                      for edge, edge_info in edges.items()}
+        edges_load = {
+            edge: edge_info["load"] * edge_info["penalty"]
+            for edge, edge_info in edges.items()
+        }
     else:
-        edges_load = {edge: edge_info['load']
-                      for edge, edge_info in edges.items()}
+        edges_load = {edge: edge_info["load"] for edge, edge_info in edges.items()}
 
     if edges_load == {}:
         return (-1, -1)
     else:
         min_load = min(edges_load.values())
-        min_edges = [e for e, load in edges_load.items()
-                     if load == min_load]
+        min_edges = [e for e, load in edges_load.items() if load == min_load]
         min_edge = min_edges[np.random.choice(len(min_edges))]
         return min_edge
 
@@ -229,9 +232,9 @@ def bike_path_percentage(edge_dict):
     bike_length = 0
     total_length = 0
     for edge, edge_info in edge_dict.items():
-        total_length += edge_info['real length']
-        if edge_info['bike path']:
-            bike_length += edge_info['real length']
+        total_length += edge_info["real length"]
+        if edge_info["bike path"]:
+            bike_length += edge_info["real length"]
     return bike_length / total_length
 
 
@@ -245,8 +248,8 @@ def check_if_trip_on_street(trip_info, edge_dict):
     :return: True if on street false if not.
     :rtype: bool
     """
-    for edge in trip_info['edges']:
-        if not edge_dict[edge]['bike path']:
+    for edge in trip_info["edges"]:
+        if not edge_dict[edge]["bike path"]:
             return True
     return False
 
@@ -261,8 +264,8 @@ def nbr_of_trips_on_street(trips_dict):
     """
     nbr_on_street = 0
     for trip, trip_info in trips_dict.items():
-        if trip_info['on street']:
-            nbr_on_street += trip_info['nbr of trips']
+        if trip_info["on street"]:
+            nbr_on_street += trip_info["nbr of trips"]
     return nbr_on_street
 
 
@@ -277,10 +280,10 @@ def set_trips_on_street(trips_dict, edge_dict):
     :rtype: dict of dicts
     """
     for trip, trip_info in trips_dict.items():
-        trip_info['on street'] = False
-        for edge in trip_info['edges']:
-            if not edge_dict[edge]['bike path']:
-                trip_info['on street'] = True
+        trip_info["on street"] = False
+        for edge in trip_info["edges"]:
+            if not edge_dict[edge]["bike path"]:
+                trip_info["on street"] = True
     return trips_dict
 
 
@@ -298,9 +301,8 @@ def get_len_of_trips_over_edge(edge, edge_list, trips_dict):
     :rtype float
     """
     length = 0
-    for trip in edge_list[edge]['trips']:
-        length += trips_dict[trip]['nbr of trips'] * \
-                  trips_dict[trip]['length real']
+    for trip in edge_list[edge]["trips"]:
+        length += trips_dict[trip]["nbr of trips"] * trips_dict[trip]["length real"]
     return length
 
 
@@ -314,8 +316,7 @@ def real_trip_length(trip_info, edge_dict):
     :return: Real length of the trip.
     :rtype: float
     """
-    length = sum([edge_dict[edge]['real length']
-                  for edge in trip_info['edges']])
+    length = sum([edge_dict[edge]["real length"] for edge in trip_info["edges"]])
     return length
 
 
@@ -329,12 +330,11 @@ def felt_trip_length(trip_info, edge_dict):
     :return: Felt length of the trip.
     :rtype: float
     """
-    length = sum([edge_dict[edge]['felt length']
-                  for edge in trip_info['edges']])
+    length = sum([edge_dict[edge]["felt length"] for edge in trip_info["edges"]])
     return length
 
 
-def len_on_types(trip_info, edge_dict, len_type='real'):
+def len_on_types(trip_info, edge_dict, len_type="real"):
     """
     Returns a dict with the length of the trip on the different street types.
     len_type defines if felt or real length.
@@ -347,13 +347,12 @@ def len_on_types(trip_info, edge_dict, len_type='real'):
     :return: Dictionary with length on different street types.
     :rtype: dict
     """
-    len_on_type = {t: 0 for t, l in
-                   trip_info[len_type+' length on types'].items()}
-    for edge in trip_info['edges']:
-        street_type = edge_dict[edge]['street type']
-        street_length = edge_dict[edge][len_type+' length']
-        if edge_dict[edge]['bike path']:
-            len_on_type['bike path'] += street_length
+    len_on_type = {t: 0 for t, l in trip_info[len_type + " length on types"].items()}
+    for edge in trip_info["edges"]:
+        street_type = edge_dict[edge]["street type"]
+        street_length = edge_dict[edge][len_type + " length"]
+        if edge_dict[edge]["bike path"]:
+            len_on_type["bike path"] += street_length
         else:
             len_on_type[street_type] += street_length
     return len_on_type
@@ -375,24 +374,23 @@ def total_len_on_types(trips_dict, len_type):
     lor = 0
     lob = 0
     for trip, trip_info in trips_dict.items():
-        nbr_of_trips = trip_info['nbr of trips']
-        lop += nbr_of_trips * \
-               trip_info[len_type+' length on types']['primary']
-        los += nbr_of_trips * \
-               trip_info[len_type+' length on types']['secondary']
-        lot += nbr_of_trips * \
-               trip_info[len_type+' length on types']['tertiary']
-        lor += nbr_of_trips * \
-               trip_info[len_type+' length on types']['residential']
-        lob += nbr_of_trips * \
-               trip_info[len_type+' length on types']['bike path']
+        nbr_of_trips = trip_info["nbr of trips"]
+        lop += nbr_of_trips * trip_info[len_type + " length on types"]["primary"]
+        los += nbr_of_trips * trip_info[len_type + " length on types"]["secondary"]
+        lot += nbr_of_trips * trip_info[len_type + " length on types"]["tertiary"]
+        lor += nbr_of_trips * trip_info[len_type + " length on types"]["residential"]
+        lob += nbr_of_trips * trip_info[len_type + " length on types"]["bike path"]
     tlos = lop + los + lot + lor
     tloa = tlos + lob
-    return {'total length on all': tloa, 'total length on street': tlos,
-            'total length on primary': lop, 'total length on secondary': los,
-            'total length on tertiary': lot,
-            'total length on residential': lor,
-            'total length on bike paths': lob}
+    return {
+        "total length on all": tloa,
+        "total length on street": tlos,
+        "total length on primary": lop,
+        "total length on secondary": los,
+        "total length on tertiary": lot,
+        "total length on residential": lor,
+        "total length on bike paths": lob,
+    }
 
 
 def set_len(trips_dict, edge_dict):
@@ -406,8 +404,8 @@ def set_len(trips_dict, edge_dict):
     :rtype: dict of dicts
     """
     for trip, trip_info in trips_dict.items():
-        trip_info['length real'] = real_trip_length(trip_info, edge_dict)
-        trip_info['length felt'] = felt_trip_length(trip_info, edge_dict)
+        trip_info["length real"] = real_trip_length(trip_info, edge_dict)
+        trip_info["length felt"] = felt_trip_length(trip_info, edge_dict)
     return trips_dict
 
 
@@ -423,10 +421,8 @@ def set_len_on_types(trips_dict, edge_dict):
     :rtype: dict of dicts
     """
     for trip, trip_info in trips_dict.items():
-        trip_info['real length on types'] = len_on_types(trip_info, edge_dict,
-                                                         'real')
-        trip_info['felt length on types'] = len_on_types(trip_info, edge_dict,
-                                                         'felt')
+        trip_info["real length on types"] = len_on_types(trip_info, edge_dict, "real")
+        trip_info["felt length on types"] = len_on_types(trip_info, edge_dict, "felt")
     return trips_dict
 
 
@@ -441,9 +437,9 @@ def add_load(edge_dict, trips_dict):
     :rtype: dict of dicts
     """
     for trip, trip_info in trips_dict.items():
-        for e in trip_info['edges']:
-            edge_dict[e]['trips'] += [trip]
-            edge_dict[e]['load'] += trip_info['nbr of trips']
+        for e in trip_info["edges"]:
+            edge_dict[e]["trips"] += [trip]
+            edge_dict[e]["load"] += trip_info["nbr of trips"]
     return edge_dict
 
 
@@ -460,10 +456,10 @@ def delete_load(edge_dict, trips_dict, dynamic=True):
     :rtype: dict of dicts
     """
     for trip, trip_info in trips_dict.items():
-        for e in trip_info['edges']:
-            edge_dict[e]['trips'].remove(trip)
+        for e in trip_info["edges"]:
+            edge_dict[e]["trips"].remove(trip)
             if dynamic:
-                edge_dict[e]['load'] -= trip_info['nbr of trips']
+                edge_dict[e]["load"] -= trip_info["nbr of trips"]
     return edge_dict
 
 
@@ -521,23 +517,23 @@ def set_sp_info(source, shortest_paths, edge_dict, trips_dict, dynamic=True):
     """
     for trip, trip_info in trips_dict.items():
         if trip[0] == source:
-            if not trip_info['nodes'] == shortest_paths[trip[1]]:
+            if not trip_info["nodes"] == shortest_paths[trip[1]]:
                 delete_load(edge_dict, {trip: trip_info}, dynamic=dynamic)
-                trip_info['nodes'] = shortest_paths[trip[1]]
-                trip_info['edges'] = get_trip_edges(edge_dict,
-                                                    trip_info['nodes'])
-                for e in trip_info['edges']:
-                    edge_dict[e]['trips'] += [trip]
+                trip_info["nodes"] = shortest_paths[trip[1]]
+                trip_info["edges"] = get_trip_edges(edge_dict, trip_info["nodes"])
+                for e in trip_info["edges"]:
+                    edge_dict[e]["trips"] += [trip]
                     if dynamic:
-                        edge_dict[e]['load'] += trip_info['nbr of trips']
-            trip_info['length felt'] = felt_trip_length(trip_info, edge_dict)
-            trip_info['length real'] = real_trip_length(trip_info, edge_dict)
-            trip_info['real length on types'] = len_on_types(trip_info,
-                                                             edge_dict, 'real')
-            trip_info['felt length on types'] = len_on_types(trip_info,
-                                                             edge_dict, 'felt')
-            trip_info['on street'] = check_if_trip_on_street(trip_info,
-                                                             edge_dict)
+                        edge_dict[e]["load"] += trip_info["nbr of trips"]
+            trip_info["length felt"] = felt_trip_length(trip_info, edge_dict)
+            trip_info["length real"] = real_trip_length(trip_info, edge_dict)
+            trip_info["real length on types"] = len_on_types(
+                trip_info, edge_dict, "real"
+            )
+            trip_info["felt length on types"] = len_on_types(
+                trip_info, edge_dict, "felt"
+            )
+            trip_info["on street"] = check_if_trip_on_street(trip_info, edge_dict)
 
 
 def calc_trips(G, edge_dict, trips_dict, netwx=False, dynamic=True):
@@ -563,15 +559,12 @@ def calc_trips(G, edge_dict, trips_dict, netwx=False, dynamic=True):
         for source in origin_nodes:
             shortest_paths = get_all_shortest_paths(G, source)
             # Set all information to trip_info and edge_info
-            set_sp_info(source, shortest_paths, edge_dict, trips_dict,
-                        dynamic=dynamic)
+            set_sp_info(source, shortest_paths, edge_dict, trips_dict, dynamic=dynamic)
     else:
         for source in origin_nodes:
-            shortest_paths = nx.single_source_dijkstra_path(G, source,
-                                                            weight='length')
+            shortest_paths = nx.single_source_dijkstra_path(G, source, weight="length")
             # Set all information to trip_info and edge_info
-            set_sp_info(source, shortest_paths, edge_dict, trips_dict,
-                        dynamic=dynamic)
+            set_sp_info(source, shortest_paths, edge_dict, trips_dict, dynamic=dynamic)
     return trips_dict, edge_dict
 
 
@@ -588,9 +581,9 @@ def edit_edge(nkG, edge_dict, edge):
     :return: Updated G and edge_dict.
     :rtype: networkx graph and  dict of dicts
     """
-    edge_dict[edge]['bike path'] = not edge_dict[edge]['bike path']
-    edge_dict[edge]['felt length'] *= edge_dict[edge]['penalty']
-    nkG.setWeight(edge[0], edge[1], edge_dict[edge]['felt length'])
+    edge_dict[edge]["bike path"] = not edge_dict[edge]["bike path"]
+    edge_dict[edge]["felt length"] *= edge_dict[edge]["penalty"]
+    nkG.setWeight(edge[0], edge[1], edge_dict[edge]["felt length"])
     return nkG, edge_dict
 
 
@@ -610,8 +603,9 @@ def calc_single_state(nxG, trip_nbrs, bike_paths, params=None):
         params = create_default_params()
 
     # All street types in network
-    len_on_type = {t: 0 for t in ['primary', 'secondary', 'tertiary',
-                                  'residential', 'bike path']}
+    len_on_type = {
+        t: 0 for t in ["primary", "secondary", "tertiary", "residential", "bike path"]
+    }
 
     # Set penalties for different street types
     penalties = params["penalties"]
@@ -619,37 +613,59 @@ def calc_single_state(nxG, trip_nbrs, bike_paths, params=None):
     # Set cost for different street types
     street_cost = params["street_cost"]
 
-    trips_dict = {t_id: {'nbr of trips': nbr_of_trips, 'nodes': [],
-                         'edges': [], 'length real': 0, 'length felt': 0,
-                         'real length on types': len_on_type,
-                         'felt length on types': len_on_type,
-                         'on street': False}
-                  for t_id, nbr_of_trips in trip_nbrs.items()}
-    edge_dict = {edge: {'felt length': get_street_length(nxG, edge),
-                        'real length': get_street_length(nxG, edge),
-                        'street type': get_street_type_cleaned(nxG, edge),
-                        'penalty': penalties[get_street_type_cleaned(nxG, edge)],
-                        'bike path': True, 'load': 0, 'trips': []}
-                 for edge in nxG.edges()}
+    trips_dict = {
+        t_id: {
+            "nbr of trips": nbr_of_trips,
+            "nodes": [],
+            "edges": [],
+            "length real": 0,
+            "length felt": 0,
+            "real length on types": len_on_type,
+            "felt length on types": len_on_type,
+            "on street": False,
+        }
+        for t_id, nbr_of_trips in trip_nbrs.items()
+    }
+    edge_dict = {
+        edge: {
+            "felt length": get_street_length(nxG, edge),
+            "real length": get_street_length(nxG, edge),
+            "street type": get_street_type_cleaned(nxG, edge),
+            "penalty": penalties[get_street_type_cleaned(nxG, edge)],
+            "bike path": True,
+            "load": 0,
+            "trips": [],
+        }
+        for edge in nxG.edges()
+    }
 
     for edge, edge_info in edge_dict.items():
         if edge not in bike_paths:
-            edge_info['bike path'] = False
-            edge_info['felt length'] *= edge_info['penalty']
-            nxG[edge[0]][edge[1]]['length'] *= edge_info['penalty']
+            edge_info["bike path"] = False
+            edge_info["felt length"] *= edge_info["penalty"]
+            nxG[edge[0]][edge[1]]["length"] *= edge_info["penalty"]
 
     calc_trips(nxG, edge_dict, trips_dict, netwx=True)
 
     # Initialise lists
     total_cost = get_total_cost(bike_paths, edge_dict, street_cost)
     bike_path_perc = bike_path_percentage(edge_dict)
-    total_real_distance_traveled = total_len_on_types(trips_dict, 'real')
-    total_felt_distance_traveled = total_len_on_types(trips_dict, 'felt')
+    total_real_distance_traveled = total_len_on_types(trips_dict, "real")
+    total_felt_distance_traveled = total_len_on_types(trips_dict, "felt")
     nbr_on_street = nbr_of_trips_on_street(trips_dict)
 
     # Save data of this run to data array
-    data = np.array([bike_paths, total_cost, bike_path_perc,
-                     total_real_distance_traveled,
-                     total_felt_distance_traveled, nbr_on_street, edge_dict,
-                     trips_dict], dtype=object)
+    data = np.array(
+        [
+            bike_paths,
+            total_cost,
+            bike_path_perc,
+            total_real_distance_traveled,
+            total_felt_distance_traveled,
+            nbr_on_street,
+            edge_dict,
+            trips_dict,
+        ],
+        dtype=object,
+    )
     return data

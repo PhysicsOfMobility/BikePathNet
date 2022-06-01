@@ -9,9 +9,18 @@ from ..helper.data_helper import *
 from ..helper.setup_helper import create_default_params, create_default_paths
 
 
-def prep_city(city_name, save_name,  input_csv, consolidate=False, tol=35,
-              cached_graph=False, cached_graph_folder=None,
-              cached_graph_name=None, paths=None, params=None):
+def prep_city(
+    city_name,
+    save_name,
+    input_csv,
+    consolidate=False,
+    tol=35,
+    cached_graph=False,
+    cached_graph_folder=None,
+    cached_graph_name=None,
+    paths=None,
+    params=None,
+):
     """
     Prepares the data of a city for the algorithm and saves it to the
     desired location.
@@ -60,38 +69,38 @@ def prep_city(city_name, save_name,  input_csv, consolidate=False, tol=35,
     polygon = get_polygon_from_json(polygon_json)
 
     if not cached_graph:
-        print(f'Downloading graph for {city_name}.')
-        G = ox.graph_from_polygon(polygon, network_type='drive')
+        print(f"Downloading graph for {city_name}.")
+        G = ox.graph_from_polygon(polygon, network_type="drive")
         G = prepare_downloaded_map(G, consolidate=consolidate, tol=tol)
     else:
-        print(f'Loading cached map for {city_name}.')
-        G = ox.load_graphml(filepath=f'{cached_graph_folder}'
-                                     f'{cached_graph_name}.graphml')
+        print(f"Loading cached map for {city_name}.")
+        G = ox.load_graphml(
+            filepath=f"{cached_graph_folder}" f"{cached_graph_name}.graphml"
+        )
         if consolidate:
             G = consolidate_nodes(G, tol=tol)
 
     # Loading trips inside the polygon
-    print('Mapping stations and calculation trips in polygon.')
+    print("Mapping stations and calculation trips in polygon.")
 
     trips, stations = load_trips(G, input_csv, polygon=polygon)
-    print(f'{save_name}: stations={len(stations)}, '
-          f'trips={sum(trips.values())}')
+    print(f"{save_name}: stations={len(stations)}, " f"trips={sum(trips.values())}")
 
     # Saving data
-    ox.save_graphml(G, filepath=f'{output_folder}{save_name}.graphml')
-    demand = h5py.File(f'{output_folder}{save_name}_demand.hdf5',
-                       'w')
-    demand.attrs['city'] = city_name
-    demand.attrs['nbr of stations'] = len(stations)
-    demand.attrs['nbr of trips'] = sum(trips.values())
+    ox.save_graphml(G, filepath=f"{output_folder}{save_name}.graphml")
+    demand = h5py.File(f"{output_folder}{save_name}_demand.hdf5", "w")
+    demand.attrs["city"] = city_name
+    demand.attrs["nbr of stations"] = len(stations)
+    demand.attrs["nbr of trips"] = sum(trips.values())
     for k, v in trips.items():
-        grp = demand.require_group(f'{k[0]}')
-        grp[f'{k[1]}'] = v
+        grp = demand.require_group(f"{k[0]}")
+        grp[f"{k[1]}"] = v
     demand.close()
 
 
-def gen_hom_demand(csv_path, poly_path, station_nbr, graph_path,
-                   method="regular", station_buffer=3):
+def gen_hom_demand(
+    csv_path, poly_path, station_nbr, graph_path, method="regular", station_buffer=3
+):
     """
     This function generates surrogate stations and an uniform demand of 1
     between those stations for the given polygon and graph. For generating the
@@ -113,7 +122,8 @@ def gen_hom_demand(csv_path, poly_path, station_nbr, graph_path,
     or 'regular' are chosen.
     :return: None
     """
-    r_gen_hom_stations = r('''
+    r_gen_hom_stations = r(
+        """
         library(sf)
         gen_hom_stations <- function (poly_path, station_nbr, 
         method="regular", station_buffer=5)
@@ -145,27 +155,32 @@ def gen_hom_demand(csv_path, poly_path, station_nbr, graph_path,
         names(df)[2] <- "lat"
         return(df)
         }
-        ''')
+        """
+    )
     pandas2ri.activate()
-    hom_stations = r_gen_hom_stations(poly_path=poly_path,
-                                      station_nbr=station_nbr, method=method,
-                                      station_buffer=station_buffer)
+    hom_stations = r_gen_hom_stations(
+        poly_path=poly_path,
+        station_nbr=station_nbr,
+        method=method,
+        station_buffer=station_buffer,
+    )
 
-    hom_stations = {s_id + 1: (hom_stations['lat'][s_id],
-                               hom_stations['lon'][s_id])
-                    for s_id in range(len(hom_stations))}
+    hom_stations = {
+        s_id + 1: (hom_stations["lat"][s_id], hom_stations["lon"][s_id])
+        for s_id in range(len(hom_stations))
+    }
 
     poly = get_polygon_from_json(poly_path)
     hom_stations = stations_in_polygon(hom_stations, poly)
     if len(hom_stations.keys()) > station_nbr:
-        print('More stations than needed, removing excess stations.')
+        print("More stations than needed, removing excess stations.")
         g = ox.load_graphml(filepath=graph_path)
         new_stations = remove_stations(hom_stations, g, station_nbr)
     elif len(hom_stations.keys()) < station_nbr:
-        print('Fewer stations than needed, please restart')
+        print("Fewer stations than needed, please restart")
         new_stations = hom_stations
     else:
-        print('Exact number stations as needed.')
+        print("Exact number stations as needed.")
         new_stations = hom_stations
 
     start_station = []
@@ -178,8 +193,9 @@ def gen_hom_demand(csv_path, poly_path, station_nbr, graph_path,
     end_longitude = []
     number_of_trips = []
 
-    demand = {od: 1 for od in it.product(new_stations.keys(), repeat=2)
-              if od[0] != od[1]}
+    demand = {
+        od: 1 for od in it.product(new_stations.keys(), repeat=2) if od[0] != od[1]
+    }
 
     for od, t in demand.items():
         start_station.append(od[0])
@@ -192,14 +208,29 @@ def gen_hom_demand(csv_path, poly_path, station_nbr, graph_path,
         end_longitude.append(new_stations[od[1]][1])
         number_of_trips.append(t)
 
-    data = [start_station, start_location, start_latitude, start_longitude,
-            end_station, end_location, end_latitude, end_longitude,
-            number_of_trips]
+    data = [
+        start_station,
+        start_location,
+        start_latitude,
+        start_longitude,
+        end_station,
+        end_location,
+        end_latitude,
+        end_longitude,
+        number_of_trips,
+    ]
 
-    columns = ['start station', 'start location', 'start latitude',
-               'start longitude',
-               'end station', 'end location', 'end latitude', 'end longitude',
-               'number of trips']
+    columns = [
+        "start station",
+        "start location",
+        "start latitude",
+        "start longitude",
+        "end station",
+        "end location",
+        "end latitude",
+        "end longitude",
+        "number of trips",
+    ]
 
     df = pd.DataFrame(data=data)
     df = df.transpose()
