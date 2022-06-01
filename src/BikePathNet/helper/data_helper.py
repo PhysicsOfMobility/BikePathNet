@@ -16,7 +16,7 @@ from .algorithm_helper import get_street_type, calc_single_state
 from .setup_helper import create_default_params, create_default_paths
 
 
-def read_csv(path, delim=','):
+def read_csv(path, delim=","):
     """
     Reads the csv given by path. Delimiter of csv can be chosen by delim.
     All column headers ar converted to lower case.
@@ -58,13 +58,16 @@ def distance(lat1, lon1, lat2, lon2):
     :return: Distance in meters
     :rtype: float
     """
-    p = pi/180
-    a = 0.5 - cos((lat2-lat1)*p)/2 + cos(lat1*p) * cos(lat2*p) * \
-        (1-cos((lon2-lon1)*p))/2
+    p = pi / 180
+    a = (
+        0.5
+        - cos((lat2 - lat1) * p) / 2
+        + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2
+    )
     return 12742 * asin(sqrt(a))
 
 
-def get_lat_long_trips(path_to_trips, polygon=None, delim=','):
+def get_lat_long_trips(path_to_trips, polygon=None, delim=","):
     """
     Returns five lists. The first stores the number of cyclists on this trip,
     the second the start latitude, the third the start longitude,
@@ -83,35 +86,37 @@ def get_lat_long_trips(path_to_trips, polygon=None, delim=','):
     trips = read_csv(path_to_trips, delim=delim)
 
     if polygon is None:
-        start_lat = list(trips['start latitude'])
-        start_long = list(trips['start longitude'])
-        end_lat = list(trips['end latitude'])
-        end_long = list(trips['end longitude'])
-        nbr_of_trips = list(trips['number of trips'])
+        start_lat = list(trips["start latitude"])
+        start_long = list(trips["start longitude"])
+        end_lat = list(trips["end latitude"])
+        end_long = list(trips["end longitude"])
+        nbr_of_trips = list(trips["number of trips"])
         return nbr_of_trips, start_lat, start_long, end_lat, end_long
     else:
-        trips['start in polygon'] = \
-            trips[['start latitude', 'start longitude']].apply(
-                lambda row: polygon.intersects(Point(row['start longitude'],
-                                                     row['start latitude'])),
-                axis=1)
-        trips['end in polygon'] = \
-            trips[['end latitude', 'end longitude']].apply(
-                lambda row: polygon.intersects(Point(row['end longitude'],
-                                                     row['end latitude'])),
-                axis=1)
-        trips['in polygon'] = trips[['start in polygon', 'end in polygon']].\
-            apply(lambda row: row['start in polygon'] and row['end in polygon'],
-                  axis=1)
-        start_lat = list(trips.loc[trips['in polygon']]['start latitude'])
-        start_long = list(trips.loc[trips['in polygon']]['start longitude'])
-        end_lat = list(trips.loc[trips['in polygon']]['end latitude'])
-        end_long = list(trips.loc[trips['in polygon']]['end longitude'])
-        nbr_of_trips = list(trips.loc[trips['in polygon']]['number of trips'])
+        trips["start in polygon"] = trips[["start latitude", "start longitude"]].apply(
+            lambda row: polygon.intersects(
+                Point(row["start longitude"], row["start latitude"])
+            ),
+            axis=1,
+        )
+        trips["end in polygon"] = trips[["end latitude", "end longitude"]].apply(
+            lambda row: polygon.intersects(
+                Point(row["end longitude"], row["end latitude"])
+            ),
+            axis=1,
+        )
+        trips["in polygon"] = trips[["start in polygon", "end in polygon"]].apply(
+            lambda row: row["start in polygon"] and row["end in polygon"], axis=1
+        )
+        start_lat = list(trips.loc[trips["in polygon"]]["start latitude"])
+        start_long = list(trips.loc[trips["in polygon"]]["start longitude"])
+        end_lat = list(trips.loc[trips["in polygon"]]["end latitude"])
+        end_long = list(trips.loc[trips["in polygon"]]["end longitude"])
+        nbr_of_trips = list(trips.loc[trips["in polygon"]]["number of trips"])
         return nbr_of_trips, start_lat, start_long, end_lat, end_long
 
 
-def load_trips(G, path_to_trips, polygon=None, delim=','):
+def load_trips(G, path_to_trips, polygon=None, delim=","):
     """
     Loads the trips and maps lat/long of start and end station to nodes in
     graph G. For this the ox.distance.nearest_nodes function of osmnx is used.
@@ -127,16 +132,18 @@ def load_trips(G, path_to_trips, polygon=None, delim=','):
     trip_nbrs structure: key=(origin node, end node), value=# of cyclists
     """
 
-    nbr_of_trips, start_lat, start_long, end_lat, end_long = \
-        get_lat_long_trips(path_to_trips, polygon, delim=delim)
+    nbr_of_trips, start_lat, start_long, end_lat, end_long = get_lat_long_trips(
+        path_to_trips, polygon, delim=delim
+    )
 
     start_nodes = list(ox.nearest_nodes(G, start_long, start_lat))
     end_nodes = list(ox.nearest_nodes(G, end_long, end_lat))
 
     trip_nbrs = {}
     for trip in range(len(nbr_of_trips)):
-        trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = \
-            int(nbr_of_trips[trip])
+        trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = int(
+            nbr_of_trips[trip]
+        )
 
     stations = set()
     for k, v in trip_nbrs.items():
@@ -157,7 +164,7 @@ def get_polygon_from_json(path_to_json):
     """
     with open(path_to_json) as j_file:
         data = json.load(j_file)
-    coordinates = data['features'][0]['geometry']['coordinates'][0]
+    coordinates = data["features"][0]["geometry"]["coordinates"][0]
     coordinates = [(item[0], item[1]) for item in coordinates]
     polygon = Polygon(coordinates)
     return polygon
@@ -174,8 +181,8 @@ def get_polygons_from_json(path_to_json):
     with open(path_to_json) as j_file:
         data = json.load(j_file)
     polygons = []
-    for d in data['features']:
-        coordinates = d['geometry']['coordinates'][0]
+    for d in data["features"]:
+        coordinates = d["geometry"]["coordinates"][0]
         coordinates = [(item[0], item[1]) for item in coordinates]
         polygons.append(Polygon(coordinates))
     return polygons
@@ -191,18 +198,25 @@ def consolidate_nodes(G, tol):
     :return: Graph with consolidated intersections
     :rtype same as param G
     """
-    H = ox.project_graph(G, to_crs='epsg:2955')
-    H = ox.consolidate_intersections(H, tolerance=tol, rebuild_graph=True,
-                                     dead_ends=True, reconnect_edges=True)
-    print('Consolidating intersections. Nodes before: {}. Nodes after: {}'
-          .format(len(G.nodes), len(H.nodes)))
+    H = ox.project_graph(G, to_crs="epsg:2955")
+    H = ox.consolidate_intersections(
+        H, tolerance=tol, rebuild_graph=True, dead_ends=True, reconnect_edges=True
+    )
+    print(
+        "Consolidating intersections. Nodes before: {}. Nodes after: {}".format(
+            len(G.nodes), len(H.nodes)
+        )
+    )
     H = nx.convert_node_labels_to_integers(H)
-    nx.set_node_attributes(H, {n: n for n in H.nodes}, 'osmid')
-    G = ox.project_graph(H, to_crs='epsg:4326')
+    nx.set_node_attributes(H, {n: n for n in H.nodes}, "osmid")
+    G = ox.project_graph(H, to_crs="epsg:4326")
     # Bugfix for node street_count is set as gloat instead of int
-    sc = {n: int(G.nodes[n]['street_count']) for n in G.nodes
-          if 'street_count' in G.nodes[n].keys()}
-    nx.set_node_attributes(G, sc, 'street_count')
+    sc = {
+        n: int(G.nodes[n]["street_count"])
+        for n in G.nodes
+        if "street_count" in G.nodes[n].keys()
+    }
+    nx.set_node_attributes(G, sc, "street_count")
     return G
 
 
@@ -224,28 +238,27 @@ def prepare_downloaded_map(G, consolidate=False, tol=35):
     # Remove self loops
     self_loops = list(nx.selfloop_edges(G))
     G.remove_edges_from(self_loops)
-    print('Removed {} self loops.'.format(len(self_loops)))
+    print("Removed {} self loops.".format(len(self_loops)))
 
     # Remove motorways and trunks
-    s_t = ['motorway', 'motorway_link', 'trunk', 'trunk_link']
-    edges_to_remove = [e for e in G.edges()
-                       if get_street_type(G, e, multi=True) in s_t]
+    s_t = ["motorway", "motorway_link", "trunk", "trunk_link"]
+    edges_to_remove = [e for e in G.edges() if get_street_type(G, e, multi=True) in s_t]
     G.remove_edges_from(edges_to_remove)
-    print('Removed {} car only edges.'.format(len(edges_to_remove)))
+    print("Removed {} car only edges.".format(len(edges_to_remove)))
 
     # Remove isolated nodes
     isolated_nodes = list(nx.isolates(G))
     G.remove_nodes_from(isolated_nodes)
-    print('Removed {} isolated nodes.'.format(len(isolated_nodes)))
+    print("Removed {} isolated nodes.".format(len(isolated_nodes)))
     G = ox.utils_graph.get_largest_component(G)
-    print('Reduce to largest connected component')
+    print("Reduce to largest connected component")
 
     if consolidate:
         G = consolidate_nodes(G, tol)
 
     # Bike graph assumed undirected.
     G = G.to_undirected()
-    print('Turned graph to undirected.')
+    print("Turned graph to undirected.")
 
     return G
 
@@ -285,24 +298,31 @@ def remove_stations(stations, g, nbr):
     s_lat = [p[0] for s, p in stations.items()]
     s_lon = [p[1] for s, p in stations.items()]
     s_nodes = list(ox.nearest_nodes(g, s_lon, s_lat))
-    nodes_latlon = [(g.nodes[n]['y'], g.nodes[n]['x']) for n in s_nodes]
-    nodes_latlon = {s: nodes_latlon[idx] for idx, s
-                    in enumerate(stations.keys())}
-    s_dist = {s: distance(stations[s][0], stations[s][1],
-                          nodes_latlon[s][0], nodes_latlon[s][1])
-              for s in stations.keys()}
+    nodes_latlon = [(g.nodes[n]["y"], g.nodes[n]["x"]) for n in s_nodes]
+    nodes_latlon = {s: nodes_latlon[idx] for idx, s in enumerate(stations.keys())}
+    s_dist = {
+        s: distance(
+            stations[s][0], stations[s][1], nodes_latlon[s][0], nodes_latlon[s][1]
+        )
+        for s in stations.keys()
+    }
     nbr = len(stations.keys()) - nbr
-    rem = list(dict(sorted(s_dist.items(), key=itemgetter(1), reverse=True)[
-                :nbr]).keys())
+    rem = list(
+        dict(sorted(s_dist.items(), key=itemgetter(1), reverse=True)[:nbr]).keys()
+    )
     for k in rem:
         del stations[k]
 
     return stations
 
 
-def average_hom_demand(save, comp_folder,
-                       bpp_base=np.linspace(0, 1, num=10000),
-                       hom_pattern='hom',  nbr_of_hom_sets=10):
+def average_hom_demand(
+    save,
+    comp_folder,
+    bpp_base=np.linspace(0, 1, num=10000),
+    hom_pattern="hom",
+    nbr_of_hom_sets=10,
+):
     """
     Averages the bikeability for the randomised demand.
     :param save:
@@ -320,9 +340,10 @@ def average_hom_demand(save, comp_folder,
     ba_c = []
 
     for hom_i in range(nbr_of_hom_sets):
-        data = h5py.File(f'{comp_folder}comp_{save}_{hom_pattern}_'
-                         f'{hom_i+1}.hdf5', 'r')['algorithm']
-        f = interpolate.interp1d(data['bpp'][()], data['ba'][()])
+        data = h5py.File(
+            f"{comp_folder}comp_{save}_{hom_pattern}_" f"{hom_i+1}.hdf5", "r"
+        )["algorithm"]
+        f = interpolate.interp1d(data["bpp"][()], data["ba"][()])
         ba_c.append(f(bpp_base))
     ba = np.mean(np.array(ba_c), axis=0)
     return bpp_base, ba
@@ -351,10 +372,11 @@ def calc_average_trip_len(nxG, trip_nbrs, penalties=True, params=None):
         bike_paths = list(nxG.edges())
 
     nxG = nx.Graph(nxG.to_undirected())
-    trips_dict = calc_single_state(nxG, trip_nbrs, bike_paths=bike_paths,
-                                   params=params)[7]
+    trips_dict = calc_single_state(
+        nxG, trip_nbrs, bike_paths=bike_paths, params=params
+    )[7]
 
     length = []
     for trip, trip_info in trips_dict.items():
-        length += [trip_info['length felt']] * trip_info['nbr of trips']
+        length += [trip_info["length felt"]] * trip_info["nbr of trips"]
     return np.average(length)
