@@ -66,10 +66,10 @@ def create_default_params():
     params["ms_nos"] = 5
 
     params["c_st"] = {
-        "primary": "#4d4d4d",
-        "secondary": "#666666",
-        "tertiary": "#808080",
-        "residential": "#999999",
+        "primary": "#000000",
+        "secondary": "#1a1a1a",
+        "tertiary": "#666666",
+        "residential": "#cccccc",
         "bike paths": "#0080c0",
     }
     params["figs_comp_st"] = (0.75, 1.85)  # Figsize for comp_st_driven plot
@@ -91,11 +91,11 @@ def create_default_params():
     params["lw_legend_bp_evo"] = 4
 
     params["figs_bp_comp"] = (2.2, 2.2)
-    params["nc_pb_evo"] = "#d726ffff"
-    params["color_algo"] = "#007fbfff"
-    params["color_cs"] = "#40e640"
-    params["color_both"] = "#f58231"
-    params["color_unused"] = "#7f7f7fff"
+    params["nc_pb_evo"] = "#d726ff"
+    params["color_algo"] = "#000075"
+    params["color_cs"] = "#f58231"
+    params["color_both"] = "#800000"
+    params["color_unused"] = "#b3b3b3"
 
     params["c_ed"] = "#0080c0"  # Colour ba for emp demand in ed hom comp
     params["c_hom"] = "#f58231"  # Colour ba for hom demand in ed hom comp
@@ -115,12 +115,13 @@ def create_default_paths():
     :rtype: dict
     """
     paths = {}
-    paths["input_folder"] = "data/input_data/"
-    paths["output_folder"] = "data/output_data/"
-    paths["log_folder"] = "logs/"
-    paths["polygon_folder"] = "data/cropped_areas/"
+    paths["csv_folder"] = "examples/data/csv/"
+    paths["input_folder"] = "examples/data/input/"
+    paths["output_folder"] = "examples/data/output/"
+    paths["log_folder"] = "examples/logs/"
+    paths["polygon_folder"] = "examples/data/polygons/"
 
-    paths["plot_folder"] = "plots/"
-    paths["comp_folder"] = "data/plot_data/"
+    paths["plot_folder"] = "examples/plots/"
+    paths["comp_folder"] = "examples/data/plot/"
 
     return paths

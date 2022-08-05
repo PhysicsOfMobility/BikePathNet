@@ -43,10 +43,10 @@ params["m_cost"] = "s"
 params["ms_cost"] = 2  # Marker size for cost
 
 params["c_st"] = {
-    "primary": "#4d4d4d",
-    "secondary": "#666666",
-    "tertiary": "#808080",
-    "residential": "#999999",
+    "primary": "#000000",
+    "secondary": "#1a1a1a",
+    "tertiary": "#666666",
+    "residential": "#cccccc",
     "bike paths": "#0080c0",
 }
 params["figs_comp_st"] = (0.8, 1.6)  # Figsize for comp_st_driven plot
@@ -70,11 +70,11 @@ params["lw_legend_bp_evo"] = 4
 
 params["figs_bp_comp"] = (2.8, 2.6)
 params["ns_bp_comp"] = 5
-params["nc_pb_evo"] = "#d726ffff"
-params["color_algo"] = "#000075"
-params["color_cs"] = "#40e640"
-params["color_both"] = "#e6194B"
-params["color_unused"] = "#b3b3b3ff"
+params["nc_pb_evo"] = "#d726ff"
+params["color_algo"] = "#0080c0"
+params["color_cs"] = "#000000"
+params["color_both"] = "#ff7d00"
+params["color_unused"] = "#b3b3b3"
 
 
 params["figs_hom_comp"] = (2.6, 2.4)
