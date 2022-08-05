@@ -1,10 +1,11 @@
 import warnings
 from params import params
 from paths import paths
-from BikePathNet.main.plot import (
+from BikePathNet import (
     plot_city,
     plot_city_hom_demand,
     plot_dynamic_vs_static,
+    plot_backward_vs_forward,
 )
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -36,4 +37,10 @@ plot_city_hom_demand(
 # Small comparison with static approach
 # plot_city(city, f'{base_save}_static', paths=paths, params=params)
 # plot_city(city, f'{base_save}_static_npw', paths=paths, params=params)
+# plot_city(city, f'{base_save}_static_ps', paths=paths, params=params)
 # plot_dynamic_vs_static(base_save, paths, params)
+
+# Small comparison with forward approach
+# params["forward"] = True
+# plot_city(city, f'{base_save}_forward', paths=paths, params=params)
+# plot_backward_vs_forward(base_save, paths, params)

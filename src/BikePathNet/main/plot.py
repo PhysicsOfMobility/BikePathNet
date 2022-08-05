@@ -233,12 +233,13 @@ def plot_bp_comparison(
     :return: None
     """
     nx.set_edge_attributes(G, False, "algo")
-    nx.set_edge_attributes(G, False, "cs")
+    nx.set_edge_attributes(G, False, "p+s")
 
     ns = [params["ns_bp_comp"] if n in stations else 0 for n in G.nodes()]
 
-    ee_algo = list(reversed(ee_algo))
-    bpp_algo = list(reversed(bpp_algo))
+    if not params["forward"]:
+        ee_algo = list(reversed(ee_algo))
+        bpp_algo = list(reversed(bpp_algo))
 
     idx = min(range(len(bpp_algo)), key=lambda i: abs(bpp_algo[i] - bpp_cs))
 
@@ -247,8 +248,8 @@ def plot_bp_comparison(
         G[edge[0]][edge[1]][0]["algo"] = True
         G[edge[1]][edge[0]][0]["algo"] = True
     for edge in ee_cs:
-        G[edge[0]][edge[1]][0]["cs"] = True
-        G[edge[1]][edge[0]][0]["cs"] = True
+        G[edge[0]][edge[1]][0]["p+s"] = True
+        G[edge[1]][edge[0]][0]["p+s"] = True
 
     ec = []
     unused = []
@@ -269,22 +270,22 @@ def plot_bp_comparison(
                 unused.append((u, v, k))
     elif mode == "p+s":
         for u, v, k, data in G.edges(keys=True, data=True):
-            if data["cs"]:
+            if data["p+s"]:
                 ec.append(params["color_cs"])
             else:
                 ec.append(params["color_unused"])
                 unused.append((u, v, k))
     elif mode == "diff":
         for u, v, k, data in G.edges(keys=True, data=True):
-            if data["algo"] and data["cs"]:
+            if data["algo"] and data["p+s"]:
                 ec.append(params["color_both"])
                 ee_both.append((u, v, k))
                 len_both += data["length"]
-            elif data["algo"] and not data["cs"]:
+            elif data["algo"] and not data["p+s"]:
                 ec.append(params["color_algo"])
                 ee_algo_only.append((u, v, k))
                 len_algo += data["length"]
-            elif not data["algo"] and data["cs"]:
+            elif not data["algo"] and data["p+s"]:
                 ec.append(params["color_cs"])
                 ee_cs_only.append((u, v, k))
                 len_cs += data["length"]
@@ -369,6 +370,7 @@ def plot_bp_comparison(
         bbox_inches="tight",
     )
     plt.close(fig)
+    ox.save_graphml(G, filepath=f"{plot_folder}{save}_bp_comp.graphml")
 
 
 def plot_mode(
@@ -425,10 +427,17 @@ def plot_mode(
     total_real_distance_traveled = json.loads(data["trdt"][()])
     total_felt_distance_traveled = json.loads(data["tfdt"][()])
 
-    trdt, trdt_ps = total_distance_traveled_list(total_real_distance_traveled, trdt_ps)
-    tfdt, tfdt_ps = total_distance_traveled_list(total_felt_distance_traveled, tfdt_ps)
+    trdt, trdt_ps = total_distance_traveled_list(
+        total_real_distance_traveled, trdt_ps, forward=params["forward"]
+    )
+    tfdt, tfdt_ps = total_distance_traveled_list(
+        total_felt_distance_traveled, tfdt_ps, forward=params["forward"]
+    )
 
-    bpp = list(reversed(bike_path_perc))
+    if params["forward"]:
+        bpp = bike_path_perc
+    else:
+        bpp = list(reversed(bike_path_perc))
 
     trdt_min = min(trdt["all"])
     trdt_max = max(trdt["all"])
@@ -463,7 +472,7 @@ def plot_mode(
     cost_x = bpp_cut[cost_idx]
 
     cut = next(x for x, val in enumerate(ba) if val >= 1)
-    total_cost, cost_ps = sum_total_cost(cost, cost_ps)
+    total_cost, cost_ps = sum_total_cost(cost, cost_ps, forward=params["forward"])
     cost_ps = cost_ps / total_cost[end]
 
     max_bpp = max(bpp[end], bpp[cut])
@@ -665,6 +674,7 @@ def plot_mode(
     hf_group["trdt max"] = trdt_max
     hf_group["trdt min"] = trdt_min
     hf_group["los"] = trdt["street"][: end + 1]
+    hf_group["los complete"] = trdt["street"]
 
     return bpp_ps, ba_ps, cost_ps
 
@@ -766,7 +776,9 @@ def plot_city(city, save, paths=None, params=None):
     data = h5py.File(f"{output_folder}{save}_data.hdf5", "r")["all"]
 
     if params["cut"]:
-        end = get_end(json.loads(data["trdt"][()]), data_ps[3])
+        end = get_end(
+            json.loads(data["trdt"][()]), data_ps[3], forward=params["forward"]
+        )
     else:
         end = len(data["bpp"][()]) - 1
 
@@ -874,6 +886,7 @@ def plot_city_hom_demand(
     :return:
     """
 
+    plt.rcdefaults()
     plt.rcParams.update(
         {"text.usetex": True, "font.family": "sans-serif", "font.sans-serif": ["Arial"]}
     )
@@ -922,9 +935,7 @@ def plot_dynamic_vs_static(save, paths, params):
     :return:
     """
 
-    plt.rcParams.update(
-        {"text.usetex": True, "font.family": "sans-serif", "font.sans-serif": ["Arial"]}
-    )
+    plt.rcdefaults()
 
     comp_folder = f'{paths["comp_folder"]}'
 
@@ -946,16 +957,38 @@ def plot_dynamic_vs_static(save, paths, params):
     ba_npw = data_static_npw_algo["ba"][()]
     los_npw = data_static_npw_algo["los"][()]
     tfdt_npw = data_static_npw_algo["tfdt"][()]
+    data_static_npw.close()
+
+    # Static without penalty weighting for load calculation
+    data_static_ps = h5py.File(f"{comp_folder}comp_{save}_static_ps.hdf5", "r")
+    data_static_ps_algo = data_static_ps["algorithm"]
+    end_ps = data_static_ps_algo["end"][()]
+    bpp_ps = list(reversed(data_static_ps_algo["bpp complete"][()]))
+    ba_ps = data_static_ps_algo["ba complete"][()]
+    los_ps = data_static_ps_algo["los complete"][()]
+    tfdt_ps = data_static_ps_algo["tfdt"][()]
+    data_static_ps.close()
 
     # Dynamic
     data_dyn = h5py.File(f"{comp_folder}comp_{save}.hdf5", "r")
     data_dyn_algo = data_dyn["algorithm"]
     end_dyn = data_dyn_algo["end"][()]
     bpp_dyn = data_dyn_algo["bpp"][()]
+    bpp_dyn_c = list(reversed(data_dyn_algo["bpp complete"][()]))
     ba_dyn = data_dyn_algo["ba"][()]
     los_dyn = data_dyn_algo["los"][()]
     tfdt_dyn = data_dyn_algo["tfdt"][()]
     data_dyn.close()
+
+    bpp_x = min(bpp_ps, key=lambda x: abs(x - bpp_dyn_c[end_dyn]))
+    bpp_idx = next(x for x, val in enumerate(bpp_ps) if val == bpp_x)
+    bpp_ps = [i / bpp_ps[bpp_idx] for i in bpp_ps][: bpp_idx + 1]
+    tfdt_min = min([min(tfdt_stat), min(tfdt_npw), min(tfdt_dyn), min(tfdt_ps)])
+    tfdt_max = max([max(tfdt_stat), max(tfdt_npw), max(tfdt_dyn), max(tfdt_ps)])
+    ba_ps = [1 - (i - tfdt_min) / (tfdt_max - tfdt_min) for i in tfdt_ps]
+    ba_ps = ba_ps[: bpp_idx + 1]
+    los_ps = los_ps[: bpp_idx + 1]
+    end_ps = bpp_idx
 
     fig1, ax1 = plt.subplots(dpi=params["dpi"], figsize=params["figs_hom_comp"])
     for axis in ["top", "bottom", "left", "right"]:
@@ -965,7 +998,8 @@ def plot_dynamic_vs_static(save, paths, params):
 
     ax1.plot(bpp_dyn, ba_dyn, lw=params["lw_ed"], label="Dynamic", c="C0")
     ax1.plot(bpp_stat, ba_stat, lw=params["lw_ed"], label="Static Imp", c="C1")
-    ax1.plot(bpp_npw, ba_npw, lw=params["lw_ed"], label="Static Cyc", c="C2")
+    ax1.plot(bpp_npw, ba_npw, lw=params["lw_ed"], label="Static Cyc", c="#ffe119")
+    ax1.plot(bpp_ps, ba_ps, lw=params["lw_ed"], label="Static PS", c="C3")
 
     ax1.set_ylabel("bikeability $b(\lambda)$", fontsize=params["fs_axl"])
     ax1.tick_params(axis="y", labelsize=params["fs_ticks"], width=0.5)
@@ -984,6 +1018,9 @@ def plot_dynamic_vs_static(save, paths, params):
     f_npw = interpolate.interp1d(bpp_npw, ba_npw)
     ba_sta_npw = f_npw(bpp_dyn)
     ba_rel_npw = [b / ba_sta_npw[m] for m, b in enumerate(ba_dyn)]
+    f_ps = interpolate.interp1d(bpp_ps, ba_ps)
+    ba_sta_ps = f_ps(bpp_dyn)
+    ba_rel_ps = [b / ba_sta_ps[m] for m, b in enumerate(ba_dyn)]
 
     axins1 = inset_axes(ax1, width="50%", height="50%", loc=4, borderpad=0.75)
     for axis in ["top", "bottom", "left", "right"]:
@@ -992,9 +1029,10 @@ def plot_dynamic_vs_static(save, paths, params):
     axins1.set_ylim(0.9, 1.5)
 
     axins1.plot(bpp_dyn, ba_rel_stat, lw=params["lw_ed"], c="C1")
-    axins1.plot(bpp_dyn, ba_rel_npw, lw=params["lw_ed"], c="C2")
+    axins1.plot(bpp_dyn, ba_rel_npw, lw=params["lw_ed"], c="#ffe119")
+    axins1.plot(bpp_dyn, ba_rel_ps, lw=params["lw_ed"], c="C3")
     axins1.axhline(y=1, xmax=1, xmin=0, c="#808080", ls="--", lw=0.5)
-    axins1.set_ylabel(r"relative bikeability $b(\lambda)$", labelpad=1, fontsize=5)
+    axins1.set_ylabel(r"${b_{dynamic}}/{b_{static}}$", labelpad=1, fontsize=5)
 
     axins1.tick_params(axis="y", length=2, width=0.5, pad=0.5, labelsize=4)
     axins1.tick_params(axis="x", length=2, width=0.5, pad=0.5, labelsize=4)
@@ -1005,7 +1043,7 @@ def plot_dynamic_vs_static(save, paths, params):
         ax1.legend(loc="lower right", fontsize=params["fs_legend"])
 
     fig1.savefig(
-        f'{paths["plot_folder"]}results/{save}/{save}_ba_comp'
+        f'{paths["plot_folder"]}results/{save}/{save}_ba_comp_static'
         f'.{params["plot_format"]}',
         bbox_inches="tight",
     )
@@ -1021,7 +1059,9 @@ def plot_dynamic_vs_static(save, paths, params):
     df_stat = [i / tfdt_stat[end_stat + 1] for i in tfdt_stat[: end_stat + 1]]
     ax2.plot(bpp_stat, df_stat, lw=params["lw_ed"], label="Static Imp", c="C1")
     df_npw = [i / tfdt_npw[end_npw + 1] for i in tfdt_npw[: end_npw + 1]]
-    ax2.plot(bpp_npw, df_npw, lw=params["lw_ed"], label="Static Cyc", c="C2")
+    ax2.plot(bpp_npw, df_npw, lw=params["lw_ed"], label="Static Cyc", c="#ffe119")
+    df_ps = [i / tfdt_ps[end_ps + 1] for i in tfdt_ps[: end_ps + 1]]
+    ax2.plot(bpp_ps, df_ps, lw=params["lw_ed"], label="Static Cyc", c="C3")
 
     ax2.set_ylabel(
         r"perceived distance traveled $\mathcal{L}(\lambda)$", fontsize=params["fs_axl"]
@@ -1043,6 +1083,9 @@ def plot_dynamic_vs_static(save, paths, params):
     h_npw = interpolate.interp1d(bpp_npw, df_npw)
     df_sta_npw = h_npw(bpp_dyn)
     df_rel_npw = [b / df_sta_npw[m] for m, b in enumerate(df_dyn)]
+    h_ps = interpolate.interp1d(bpp_ps, df_ps)
+    df_sta_ps = h_ps(bpp_dyn)
+    df_rel_ps = [b / df_sta_ps[m] for m, b in enumerate(df_dyn)]
 
     axins2 = inset_axes(ax2, width="50%", height="50%", loc=1, borderpad=0.5)
     for axis in ["top", "bottom", "left", "right"]:
@@ -1051,9 +1094,12 @@ def plot_dynamic_vs_static(save, paths, params):
     axins2.set_ylim(0.95, 1.01)
 
     axins2.plot(bpp_dyn, df_rel_stat, lw=params["lw_ed"], c="C1")
-    axins2.plot(bpp_dyn, df_rel_npw, lw=params["lw_ed"], c="C2")
+    axins2.plot(bpp_dyn, df_rel_npw, lw=params["lw_ed"], c="#ffe119")
+    axins2.plot(bpp_dyn, df_rel_ps, lw=params["lw_ed"], c="C3")
     axins2.axhline(y=1, xmax=1, xmin=0, c="#808080", ls="--", lw=0.5)
-    axins2.set_ylabel("relative perceived distance", labelpad=1, fontsize=5)
+    axins2.set_ylabel(
+        "${\mathcal{L}_{dynamic}}/{\mathcal{L}_{static}}$", labelpad=1, fontsize=5
+    )
 
     axins2.tick_params(axis="y", length=2, width=0.5, pad=0.5, labelsize=4)
     axins2.tick_params(axis="x", length=2, width=0.5, pad=0.5, labelsize=4)
@@ -1064,7 +1110,7 @@ def plot_dynamic_vs_static(save, paths, params):
         ax2.legend(loc="lower right", fontsize=params["fs_legend"])
 
     fig2.savefig(
-        f'{paths["plot_folder"]}results/{save}/{save}_perceived_dist_comp'
+        f'{paths["plot_folder"]}results/{save}/{save}_perceived_dist_comp_static'
         f'.{params["plot_format"]}',
         bbox_inches="tight",
     )
@@ -1077,7 +1123,8 @@ def plot_dynamic_vs_static(save, paths, params):
 
     ax3.plot(bpp_dyn, los_dyn, lw=params["lw_ed"], c="C0")
     ax3.plot(bpp_stat, los_stat, lw=params["lw_ed"], c="C1")
-    ax3.plot(bpp_npw, los_npw, lw=params["lw_ed"], c="C2")
+    ax3.plot(bpp_npw, los_npw, lw=params["lw_ed"], c="#ffe119")
+    ax3.plot(bpp_ps, los_ps, lw=params["lw_ed"], c="C3")
 
     ax3.set_ylabel("fraction traveled on street", fontsize=params["fs_axl"])
     ax3.tick_params(axis="y", labelsize=params["fs_ticks"], width=0.5)
@@ -1097,7 +1144,163 @@ def plot_dynamic_vs_static(save, paths, params):
         ax3.legend(loc="upper right", fontsize=params["fs_legend"])
 
     fig3.savefig(
-        f'{paths["plot_folder"]}results/{save}/{save}_len_on_street_comp'
+        f'{paths["plot_folder"]}results/{save}/{save}_len_on_street_comp_static'
+        f'.{params["plot_format"]}',
+        bbox_inches="tight",
+    )
+
+
+def plot_backward_vs_forward(save, paths, params):
+    """
+    Comparison between the backward approach and a forward approach.
+    :param save: save name of the city
+    :type save: str
+    :param paths: Paths for loading and saving from/to.
+    :type paths: dict
+    :param params: Params for plotting
+    :type params: dict
+    :return:
+    """
+
+    plt.rcdefaults()
+
+    comp_folder = f'{paths["comp_folder"]}'
+
+    # Forward
+    data_forward = h5py.File(f"{comp_folder}comp_{save}_forward.hdf5", "r")
+    data_forward_algo = data_forward["algorithm"]
+    end_forward = data_forward_algo["end"][()]
+    bpp_forward = data_forward_algo["bpp"][()]
+    ba_forward = data_forward_algo["ba"][()]
+    los_forward = data_forward_algo["los"][()]
+    tfdt_forward = data_forward_algo["tfdt"][()]
+    data_forward.close()
+
+    # Backward
+    data_backward = h5py.File(f"{comp_folder}comp_{save}.hdf5", "r")
+    data_backward_algo = data_backward["algorithm"]
+    end_backward = data_backward_algo["end"][()]
+    bpp_backward = list(reversed(data_backward_algo["bpp complete"][()]))
+    ba_backward = data_backward_algo["ba complete"][()]
+    ba_backward = ba_backward[: end_forward + 1]
+    los_backward = data_backward_algo["los complete"][()][: end_forward + 1]
+    tfdt_backward = data_backward_algo["tfdt"][()]
+    data_backward.close()
+
+    bpp_x = min(bpp_forward, key=lambda x: abs(x - bpp_backward[end_backward]))
+    bpp_idx = next(x for x, val in enumerate(bpp_forward) if val == bpp_x)
+    bpp_forward = [i / bpp_forward[bpp_idx] for i in bpp_forward]
+    bpp_backward = [
+        i / bpp_backward[end_backward] for i in bpp_backward[: end_forward + 1]
+    ]
+
+    print(bpp_forward[-1])
+
+    fig1, ax1 = plt.subplots(dpi=params["dpi"], figsize=params["figs_hom_comp"])
+    for axis in ["top", "bottom", "left", "right"]:
+        ax1.spines[axis].set_linewidth(0.5)
+    ax1.set_xlim(0.0, max(bpp_backward))
+    ax1.set_ylim(0.0, 1.0)
+
+    ax1.plot(bpp_backward, ba_backward, lw=params["lw_ed"], label="backward", c="C0")
+    ax1.plot(bpp_forward, ba_forward, lw=params["lw_ed"], label="forward", c="C1")
+
+    ax1.axvline(x=1, ymax=1, ymin=0, c="#808080", ls="--", lw=0.5)
+
+    ax1.set_ylabel("bikeability $b(\lambda)$", fontsize=params["fs_axl"])
+    ax1.tick_params(axis="y", labelsize=params["fs_ticks"], width=0.5)
+    ax1.tick_params(axis="x", labelsize=params["fs_ticks"], width=0.5)
+    ax1.xaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    ax1.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    ax1.yaxis.set_minor_locator(AutoMinorLocator())
+    ax1.xaxis.set_minor_locator(AutoMinorLocator())
+    ax1.set_xlabel(
+        r"normalized relative length of bike paths $\lambda$", fontsize=params["fs_axl"]
+    )
+
+    if params["titles"]:
+        ax1.set_title("Bikeability", fontsize=params["fs_title"])
+    if params["legends"]:
+        ax1.legend(loc="lower right", fontsize=params["fs_legend"])
+
+    fig1.savefig(
+        f'{paths["plot_folder"]}results/{save}/{save}_ba_comp_forward'
+        f'.{params["plot_format"]}',
+        bbox_inches="tight",
+    )
+
+    fig2, ax2 = plt.subplots(dpi=params["dpi"], figsize=params["figs_hom_comp"])
+    for axis in ["top", "bottom", "left", "right"]:
+        ax2.spines[axis].set_linewidth(0.5)
+    ax2.set_xlim(0.0, max(bpp_backward))
+    ax2.set_ylim(1.0, 1.5)
+
+    df_backward = [
+        i / tfdt_backward[end_forward + 1] for i in tfdt_backward[: end_forward + 1]
+    ]
+    ax2.plot(bpp_backward, df_backward, lw=params["lw_ed"], label="backward", c="C0")
+    df_forward = [
+        i / tfdt_forward[end_forward + 1] for i in tfdt_forward[: end_forward + 1]
+    ]
+    ax2.plot(bpp_forward, df_forward, lw=params["lw_ed"], label="forward", c="C1")
+
+    ax2.axvline(x=1, ymax=1, ymin=0, c="#808080", ls="--", lw=0.5)
+
+    ax2.set_ylabel(
+        r"perceived distance traveled $\mathcal{L}(\lambda)$", fontsize=params["fs_axl"]
+    )
+    ax2.set_xlabel(
+        r"normalized relative length of bike paths $\lambda$", fontsize=params["fs_axl"]
+    )
+
+    ax2.tick_params(axis="y", labelsize=params["fs_ticks"], width=0.5)
+    ax2.tick_params(axis="x", labelsize=params["fs_ticks"], width=0.5)
+    ax2.xaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    ax2.yaxis.set_major_locator(ticker.MultipleLocator(0.1))
+    ax2.yaxis.set_minor_locator(AutoMinorLocator())
+    ax2.xaxis.set_minor_locator(AutoMinorLocator())
+
+    if params["titles"]:
+        ax2.set_title("Perceived Distance", fontsize=params["fs_title"])
+    if params["legends"]:
+        ax2.legend(loc="lower right", fontsize=params["fs_legend"])
+
+    fig2.savefig(
+        f'{paths["plot_folder"]}results/{save}/{save}_perceived_dist_comp_forward'
+        f'.{params["plot_format"]}',
+        bbox_inches="tight",
+    )
+
+    fig3, ax3 = plt.subplots(dpi=params["dpi"], figsize=params["figs_hom_comp"])
+    for axis in ["top", "bottom", "left", "right"]:
+        ax3.spines[axis].set_linewidth(0.5)
+    ax3.set_xlim(0.0, max(bpp_backward))
+    ax3.set_ylim(0.0, 1.0)
+
+    ax3.plot(bpp_backward, los_backward, lw=params["lw_ed"], c="C0")
+    ax3.plot(bpp_forward, los_forward, lw=params["lw_ed"], c="C1")
+
+    ax3.axvline(x=1, ymax=1, ymin=0, c="#808080", ls="--", lw=0.5)
+
+    ax3.set_ylabel("fraction traveled on street", fontsize=params["fs_axl"])
+    ax3.tick_params(axis="y", labelsize=params["fs_ticks"], width=0.5)
+    ax3.tick_params(axis="x", labelsize=params["fs_ticks"], width=0.5)
+    ax3.xaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    ax3.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    ax3.yaxis.set_minor_locator(AutoMinorLocator())
+    ax3.xaxis.set_minor_locator(AutoMinorLocator())
+
+    ax3.set_xlabel(
+        r"normalized relative length of bike paths $\lambda$", fontsize=params["fs_axl"]
+    )
+
+    if params["titles"]:
+        ax3.set_title("Fraction on Street", fontsize=params["fs_title"])
+    if params["legends"]:
+        ax3.legend(loc="upper right", fontsize=params["fs_legend"])
+
+    fig3.savefig(
+        f'{paths["plot_folder"]}results/{save}/{save}_len_on_street_comp_forward'
         f'.{params["plot_format"]}',
         bbox_inches="tight",
     )

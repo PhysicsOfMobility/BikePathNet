@@ -185,7 +185,7 @@ def get_trip_edges(edges_dict, trip_nodes):
     return edge_sequence
 
 
-def get_minimal_loaded_edge(edge_dict, penalty=True):
+def get_minimal_loaded_edge(edge_dict, penalty=True, forward=False):
     """
     Returns the minimal loaded edge in edge_list.
     If unedited=True it returns the minimal loaded unedited edge.
@@ -195,30 +195,51 @@ def get_minimal_loaded_edge(edge_dict, penalty=True):
     :type edge_dict: dict of dicts.
     :param penalty: If penalties should be used for load weighting.
     :type penalty: bool
+    :param forward: Starting from scratch and adding bike paths
+    :type forward: bool
     :return: minimal loaded edge
     :rtype: Tuple of integers
     """
-    edges = {
-        edge: edge_info
-        for edge, edge_info in edge_dict.items()
-        if edge_info["bike path"]
-    }
+    if forward:
+        edges = {
+            edge: edge_info
+            for edge, edge_info in edge_dict.items()
+            if not edge_info["bike path"]
+        }
+    else:
+        edges = {
+            edge: edge_info
+            for edge, edge_info in edge_dict.items()
+            if edge_info["bike path"]
+        }
 
     if penalty:
-        edges_load = {
-            edge: edge_info["load"] * edge_info["penalty"]
-            for edge, edge_info in edges.items()
-        }
+        if forward:
+            edges_load = {
+                edge: edge_info["load"] * (1 / edge_info["penalty"])
+                for edge, edge_info in edges.items()
+            }
+        else:
+            edges_load = {
+                edge: edge_info["load"] * edge_info["penalty"]
+                for edge, edge_info in edges.items()
+            }
     else:
         edges_load = {edge: edge_info["load"] for edge, edge_info in edges.items()}
 
     if edges_load == {}:
         return (-1, -1)
     else:
-        min_load = min(edges_load.values())
-        min_edges = [e for e, load in edges_load.items() if load == min_load]
-        min_edge = min_edges[np.random.choice(len(min_edges))]
-        return min_edge
+        if forward:
+            max_load = max(edges_load.values())
+            max_edges = [e for e, load in edges_load.items() if load == max_load]
+            max_edge = max_edges[np.random.choice(len(max_edges))]
+            return max_edge
+        else:
+            min_load = min(edges_load.values())
+            min_edges = [e for e, load in edges_load.items() if load == min_load]
+            min_edge = min_edges[np.random.choice(len(min_edges))]
+            return min_edge
 
 
 def bike_path_percentage(edge_dict):

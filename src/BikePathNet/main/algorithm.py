@@ -5,6 +5,7 @@ import h5py
 import json
 import time
 import osmnx as ox
+from copy import deepcopy
 from pathlib import Path
 from ..helper.algorithm_helper import *
 from ..helper.logging_helper import log_to_file
@@ -21,11 +22,12 @@ def core_algorithm(
     logpath,
     output_folder,
     save,
-    dynamic,
-    penalty,
+    dynamic=True,
+    penalty=True,
+    forward=False,
+    ps_routes=False,
 ):
     """
-
     :param nkG: Graph.
     :type nkG: networkit graph
     :param edge_dict: Dictionary of edges of G. {edge: edge_info}
@@ -44,15 +46,27 @@ def core_algorithm(
     :type output_folder: str
     :param save: Save name of the network
     :type save: str
-    :param dynamic: If penalties should be used for load weighting.
+    :param dynamic: If trips should be recalculated each step.
     :type dynamic: bool
-    :param penalty: If trips should be recalculated each step.
+    :param penalty: If penalties should be used for load weighting.
     :type penalty: bool
+    :param forward: Starting from scratch and adding bike paths
+    :type forward: bool
+    :param ps_routes: If the routes of the p+s state should be used for static
+    :type ps_routes: bool
     :return: None
     """
     # Initial calculation
     print("Initial calculation started.")
-    calc_trips(nkG, edge_dict, trips_dict)
+    if ps_routes:
+        nkG_ps = deepcopy(nkG)
+        for edge, edge_info in edge_dict.items():
+            if edge_info["street type"] not in ["primary", "secondary"]:
+                new_length = edge_info["felt length"] * edge_info["penalty"]
+                nkG_ps.setWeight(edge[0], edge[1], new_length)
+        calc_trips(nkG_ps, edge_dict, trips_dict)
+    else:
+        calc_trips(nkG, edge_dict, trips_dict)
     print("Initial calculation ended.")
 
     # Initialise lists
@@ -81,13 +95,20 @@ def core_algorithm(
         0.01,
         0,
     ]
+    if forward:
+        log_at = list(reversed(log_at))[1:] + [1]
     log_idx = 0
 
     while True:
         # Calculate minimal loaded unedited edge:
-        min_loaded_edge = get_minimal_loaded_edge(edge_dict, penalty=penalty)
+        min_loaded_edge = get_minimal_loaded_edge(
+            edge_dict, penalty=penalty, forward=forward
+        )
         if min_loaded_edge == (-1, -1):
-            print("Removed all bike paths.")
+            if forward:
+                print("Added all bike paths.")
+            else:
+                print("Removed all bike paths.")
             break
         edited_edges.append(min_loaded_edge)
         edited_edges_nx.append(get_nx_edge(min_loaded_edge, nk2nx_edges))
@@ -96,9 +117,12 @@ def core_algorithm(
         # Edit minimal loaded edge and update edge_dict.
         edit_edge(nkG, edge_dict, min_loaded_edge)
         # Get all trips affected by editing the edge
-        trips_recalc = {
-            trip: trips_dict[trip] for trip in edge_dict[min_loaded_edge]["trips"]
-        }
+        if forward:
+            trips_recalc = deepcopy(trips_dict)
+        else:
+            trips_recalc = {
+                trip: trips_dict[trip] for trip in edge_dict[min_loaded_edge]["trips"]
+            }
 
         # Recalculate all affected trips and update their information.
         calc_trips(nkG, edge_dict, trips_recalc, dynamic=dynamic)
@@ -111,7 +135,9 @@ def core_algorithm(
 
         # Logging
         next_log = log_at[log_idx]
-        if bike_path_perc[-1] < next_log:
+        if (forward and bike_path_perc[-1] > next_log) ^ (
+            not forward and bike_path_perc[-1] < next_log
+        ):
             log_to_file(
                 file=logpath,
                 txt=f"{save}: reached {next_log:3.2f} BPP",
@@ -245,6 +271,8 @@ def run_simulation(city, save, params=None, paths=None):
 
     # Set penalties for different street types
     penalties = params["penalties"]
+    if params["forward"]:
+        penalties = {k: 1 / v for k, v in penalties.items()}
 
     # Set cost for different street types
     street_cost = params["street_cost"]
@@ -269,13 +297,19 @@ def run_simulation(city, save, params=None, paths=None):
             "real length": get_street_length(nxG, edge, nk2nx_edges),
             "street type": get_street_type_cleaned(nxG, edge, nk2nx_edges),
             "penalty": penalties[get_street_type_cleaned(nxG, edge, nk2nx_edges)],
-            "bike path": True,
+            "bike path": not params["forward"],
             "load": 0,
             "trips": [],
             "original edge": nk2nx_edges[edge],
         }
         for edge in nkG.iterEdges()
     }
+
+    # If forward, set all lengths to penalty
+    if params["forward"]:
+        for edge, edge_info in edge_dict.items():
+            edge_info["felt length"] *= 1 / edge_info["penalty"]
+            nkG.setWeight(edge[0], edge[1], edge_info["felt length"])
 
     hf.close()
     # Calculate data
@@ -291,6 +325,8 @@ def run_simulation(city, save, params=None, paths=None):
         save=save,
         penalty=params["penalty weighting"],
         dynamic=params["dynamic routes"],
+        forward=params["forward"],
+        ps_routes=params["ps routes"],
     )
 
     # Print computation time to console and write it to the log.

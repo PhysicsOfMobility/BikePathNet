@@ -13,6 +13,8 @@ params["street_cost"] = {"primary": 1, "secondary": 1, "tertiary": 1, "residenti
 
 params["penalty weighting"] = True  # Penalties for load weighting
 params["dynamic routes"] = True  # Route recalculation after each step
+params["forward"] = False   # Starting from scratch and adding bike paths
+params["ps routes"] = False
 
 params["cut"] = True  # If results should be normalised to first removal
 params["bike_paths"] = None  # Additional ike Paths for current state

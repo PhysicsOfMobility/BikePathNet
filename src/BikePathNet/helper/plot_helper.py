@@ -48,13 +48,15 @@ def coord_transf(x, y, xmin=0.0, xmax=1.0, ymin=0.0, ymax=1.0):
     return (x - xmin) / (xmax - xmin), (y - ymin) / (ymax - ymin)
 
 
-def total_distance_traveled_list(total_dist, total_dist_now):
+def total_distance_traveled_list(total_dist, total_dist_now, forward=False):
     """
     Renormalises all total distance traveled lists.
     :param total_dist: dict of tdt lists
     :type total_dist: dict
     :param total_dist_now:  dict of tdt lists for the current state
     :type total_dist_now: dict
+    :param forward: Starting from scratch and adding bike paths
+    :type forward: bool
     :return:
     """
     dist = {}
@@ -96,40 +98,46 @@ def total_distance_traveled_list(total_dist, total_dist_now):
     dist["bike paths"] = [x / on_all[idx] for idx, x in enumerate(on_bike)]
     dist_now["bike paths"] = total_dist_now["total length on bike paths"] / on_all_now
 
-    for st, len_on_st in dist.items():
-        dist[st] = list(reversed(len_on_st))
+    if not forward:
+        for st, len_on_st in dist.items():
+            dist[st] = list(reversed(len_on_st))
     return dist, dist_now
 
 
-def sum_total_cost(cost, cost_now):
+def sum_total_cost(cost, cost_now, forward=False):
     """
     Sums up all total cost up to each step.
     :param cost: List of costs per step
     :type cost: list
     :param cost_now: Cost of the current state.
     :type cost_now: float  or int
+    :param forward: Starting from scratch and adding bike paths
+    :type forward: bool
     :return: Summed and renormalised cost and renormalised cost for the
     current state
     :rtype: list, float
     """
-    cost = list(reversed(cost))  # costs per step
+    if not forward:
+        cost = list(reversed(cost))  # costs per step
     total_cost = [sum(cost[:i]) for i in range(1, len(cost) + 1)]
     cost_now = cost_now / total_cost[-1]
     total_cost = [i / total_cost[-1] for i in total_cost]
     return total_cost, cost_now
 
 
-def get_end(tdt, tdt_now):
+def get_end(tdt, tdt_now, forward=False):
     """
     Returns the index where the bikeability reaches 1.
     :param tdt: total distance traveled
     :type tdt: dict
     :param tdt_now: total distance traveled for current state
     :type tdt_now: dict
+    :param forward: Starting from scratch and adding bike paths
+    :type forward: bool
     :return: Index where bikeability reaches 1
     :rtype: int
     """
-    tdt, tdt_now = total_distance_traveled_list(tdt, tdt_now)
+    tdt, tdt_now = total_distance_traveled_list(tdt, tdt_now, forward=forward)
     ba = [
         1 - (i - min(tdt["all"])) / (max(tdt["all"]) - min(tdt["all"]))
         for i in tdt["all"]
@@ -205,7 +213,7 @@ def plot_barv_stacked(
     :return:
     """
     if params is None:
-        figsize = [10, 12]
+        params = create_default_params()
 
     stacks = list(data.keys())
     values = list(data.values())
@@ -247,7 +255,6 @@ def plot_barv_stacked(
                     fontsize=5,
                 )
         bottom = [sum(x) for x in zip(bottom, values[idx])]
-        # print(stacks[idx], values[idx])
 
     ax.set_ylabel(ylabel, fontsize=params["fs_axl"])
     ax.yaxis.set_minor_locator(AutoMinorLocator())
