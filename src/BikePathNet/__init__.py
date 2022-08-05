@@ -16,4 +16,7 @@ from .main.plot import plot_city
 from .main.plot import plot_used_nodes
 from .main.plot import plot_bp_comparison
 from .main.plot import plot_mode
+from .main.plot import plot_city_hom_demand
+from .main.plot import plot_dynamic_vs_static
+from .main.plot import plot_backward_vs_forward
 from .helper.plot_helper import calc_polygon_area
