@@ -1193,8 +1193,6 @@ def plot_backward_vs_forward(save, paths, params):
         i / bpp_backward[end_backward] for i in bpp_backward[: end_forward + 1]
     ]
 
-    print(bpp_forward[-1])
-
     fig1, ax1 = plt.subplots(dpi=params["dpi"], figsize=params["figs_hom_comp"])
     for axis in ["top", "bottom", "left", "right"]:
         ax1.spines[axis].set_linewidth(0.5)
