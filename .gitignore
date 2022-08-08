@@ -131,10 +131,7 @@ dmypy.json
 
 # Large data
 
-examples/data/csv/dd*
-examples/data/polygons/dd_hom*
 examples/data/input/*/*.hdf5
-examples/data/input/dd*
 examples/data/input/*hom*
 examples/data/input/*static*
 examples/data/output
