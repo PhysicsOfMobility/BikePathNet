@@ -370,7 +370,6 @@ def plot_bp_comparison(
         bbox_inches="tight",
     )
     plt.close(fig)
-    ox.save_graphml(G, filepath=f"{plot_folder}{save}_bp_comp.graphml")
 
 
 def plot_mode(
