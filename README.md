@@ -2,7 +2,7 @@
 
 # Demand-driven design of bicycle infrastructure networks for improved urban bikeability
 
-This is the source code for the paper "Demand-driven design of bicycle infrastructure networks for improved urban bikeability" by C. Steinacker, D.-M. Storch, M. Timme, and M. Schröder.
+This is the source code for the paper "[Demand-driven design of bicycle infrastructure networks for improved urban bikeability](https://www.nature.com/articles/s43588-022-00318-w)" by C. Steinacker, D.-M. Storch, M. Timme, and M. Schröder.
 
 ## HOWTO
 
