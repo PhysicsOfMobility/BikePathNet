@@ -1,3 +1,4 @@
+import numpy as np
 from os.path import dirname, abspath, basename, join
 
 
@@ -37,55 +38,28 @@ def create_default_params() -> dict:
     Returns
     -------
     output : dict
-    
+
     """
     params = {}
+    params = {}
     params["cyclist_types"] = 1
-    params["car_penalty"] = {
-        "primary": [7],
-        "secondary": [2.4],
-        "tertiary": [1.4],
-        "residential": [1.1],
-    }
-    params["slope_penalty"] = {
-        0.06: [1.0],
-        0.04: [1.0],
-        0.02: [1.0],
-        0.00: [1.0]
-    }
-    params["turn_penalty"] = {
-        "large": [1.0],
-        "medium": [1.0],
-        "small": [1.0],
-    }
-    params["intersection_penalty"] = {
-        "large": [0.0],
-        "medium": [0.0],
-        "small": [0.0],
-    }
-    params["bp_end_penalty"] = {
-        "primary": {1: [1.0], 2: [1.0], 3: [1.0]},
-        "secondary": {1: [1.0], 2: [1.0], 3: [1.0]},
-        "tertiary": {1: [1.0], 2: [1.0], 3: [1.0]},
-        "residential": {1: [1.0], 2: [1.0], 3: [1.0]},
-    }
-    params["street_cost"] = {
-        "primary": 1,
-        "secondary": 1,
-        "tertiary": 1,
-        "residential": 1,
-    }
-    params["surrogate"] = False  # If network is a surrogate Network
+    params["cyclist_split"] = {1: 1}
+    params["bike_highways"] = False
     params["modes"] = [(1, False, 1)]  # Modes used for algorithm and plotting
+    params["save_edge_load"] = False
     params["cut"] = True  # If results should be normalised to first removal
     params["bike_paths"] = []  # Additional ike Paths for current state
-    params["use exinf"] = False
+    params["use_exinf"] = False
     params["ex inf"] = ["track", "lane"]  # Ex bp which should not be removed
+
     params["correct_area"] = True  # Correction of the area size
+
+    params["plot_bp_comp"] = True  # If BP comp should be plotted
     params["plot_evo"] = False  # If BP evolution should be plotted
     params["evo_for"] = []  # For given modes
+    params["bpp_range"] = [float(f"{i:4.3f}") for i in np.linspace(0, 1, num=101)]
 
-    params["dpi"] = 150  # dpi of plots
+    params["dpi"] = 300  # dpi of plots
     params["titles"] = True  # If figure title should be plotted
     params["legends"] = True  # If legends should be plotted
     params["plot_format"] = "png"  # Format of the saved plot
@@ -127,25 +101,29 @@ def create_default_params() -> dict:
     params["figs_snetwork"] = (7, 5)
     params["ns_snetwork"] = 1
     params["nc_snetwork"] = "#a9a9a9"
-    params["ew_snetwork"] = 1
+    params["ew_snetwork"] = 0.6
     params["ec_snetwork"] = "#b3b3b3"
 
-    params["figs_station_usage"] = (1.5, 1.4)
+    params["figs_station_usage"] = (2.7, 2.6)
     params["figs_station_usage_hist"] = (3.65, 1.3)
     params["stat_usage_norm"] = 1
     params["cmap_nodes"] = "cool"  # Cmap for nodes usage
-    params["nodesize"] = 4
+    params["nodesize"] = 7
     params["ec_station_usage"] = "#b3b3b3"
 
     params["figs_bp_evo"] = (2.2, 2.2)
     params["lw_legend_bp_evo"] = 4
 
     params["figs_bp_comp"] = (2.2, 2.2)
-    params["nc_pb_evo"] = "#d726ffff"
-    params["color_algo"] = "#007fbfff"  # 000075 0080c0
-    params["color_cs"] = "#40e640"  # 40e640
-    params["color_both"] = "#f58231"  # 40e6c0
-    params["color_unused"] = "#7f7f7fff"  # 808080
+    params["nc_bp_comp"] = "#d726ffff"
+    params["color_algo"] = "#007fbfff"
+    params["color_algo_ex_inf"] = "#000000"
+    params["color_cs"] = "#800000"
+    params["color_cs_ex_inf"] = "#000000"
+    params["color_both"] = "#f58231"
+    params["color_both_ex_inf"] = "#000000"
+    params["color_ex_inf"] = "#000000"
+    params["color_unused"] = "#b3b3b3"  # 808080
 
     params["c_ed"] = "#0080c0"  # Colour ba for emp demand in rd-ed comp
     params["c_rd"] = "#f58231"  # Colour ba for rand demand in rd-ed comp
@@ -160,5 +138,7 @@ def create_default_params() -> dict:
     params["lw_rd"] = 0.9
     params["c_rd_ed_area"] = "#999999"
     params["a_rd_ed_area"] = 0.75
+
+    params["cmap_city_comp"] = "tab20"
 
     return params

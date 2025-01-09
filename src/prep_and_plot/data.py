@@ -1,6 +1,7 @@
 """
 This module includes all necessary functions for the data preparation and handling.
 """
+
 from os.path import join
 from pathlib import Path
 from .data_helper import *
@@ -27,7 +28,8 @@ def prep_city(
     params: dict | None = None,
     paths: dict | None = None,
 ):
-    """Prepares the data of a city for the algorithm and saves it to the desired location.
+    """Prepares the data of a city for the algorithm and saves it to the desired
+    location.
 
     Parameters
     ----------
@@ -63,9 +65,11 @@ def prep_city(
     cached_graph_file_path : str or None
         Path of the downloaded graph. (Default value = None)
     params : dict | None
-        Dict with the params for plots etc., check 'setup_params.py' in the 'scripts' folder. (Default value = None)
+        Params for data loading etc., check 'setup_params.py' in the 'scripts' folder.
+        (Default value = None)
     paths : dict | None
-        Dict with the paths for plots etc., check 'setup_paths.py' in the 'scripts' folder. (Default value = None)
+        Dict with the paths for data, plots etc., check 'setup_paths.py' in the
+        'scripts' folder. (Default value = None)
 
     Returns
     -------
@@ -112,7 +116,9 @@ def prep_city(
             G_b = ox.load_graphml(filepath=cached_graph_file_path)
             for u, v, data in G_b.edges(data=True):
                 data["ex_inf"] = literal_eval(data["ex_inf"])
-                data["turn_penalty"] = {int(key): value for key, value in data["turn_penalty"].items()}
+                data["turn_penalty"] = {
+                    int(key): value for key, value in data["turn_penalty"].items()
+                }
                 data["cost"] = literal_eval(data["cost"])
             if consolidate:
                 G_b = consolidate_nodes(G_b, tol=tol)
@@ -120,7 +126,9 @@ def prep_city(
         # Loading trips inside bbox
         print("Mapping stations and calculation trips on map given by bbox")
         trips_b, stations_b = load_trips(G_b, input_csv)
-        trips_b = trip_cyclist_type_split(trips_b, cyclist_split=params["cyclist_split"])
+        trips_b = trip_cyclist_type_split(
+            trips_b, cyclist_split=params["cyclist_split"]
+        )
         print(
             f"Number of Stations: {len(stations_b)}, "
             f"Number of trips: {sum([sum(t_b.values()) for t_b in trips_b.values()])} "
@@ -167,18 +175,20 @@ def prep_city(
             G_c = ox.load_graphml(filepath=cached_graph_file_path)
             for u, v, data in G_c.edges(data=True):
                 data["ex_inf"] = literal_eval(data["ex_inf"])
-                data["turn_penalty"] = {int(key): value for key, value in data["turn_penalty"].items()}
+                data["turn_penalty"] = {
+                    int(key): value for key, value in data["turn_penalty"].items()
+                }
                 data["cost"] = literal_eval(data["cost"])
             if consolidate:
                 G_c = consolidate_nodes(G_c, tol=tol)
 
         # Loading trips inside whole map
         print("Mapping stations and calculation trips on city map.")
-        polygon_c = ox.geocode_to_gdf(
-            nominatim_name, which_result=nominatim_result
-        )
+        polygon_c = ox.geocode_to_gdf(nominatim_name, which_result=nominatim_result)
         trips_c, stations_c = load_trips(G_c, input_csv, polygon=polygon_c)
-        trips_c = trip_cyclist_type_split(trips_c, cyclist_split=params["cyclist_split"])
+        trips_c = trip_cyclist_type_split(
+            trips_c, cyclist_split=params["cyclist_split"]
+        )
         print(
             f"Number of Stations: {len(stations_c)}, "
             f"Number of trips: {sum([sum(t_c.values()) for t_c in trips_c.values()])} "
@@ -227,7 +237,9 @@ def prep_city(
             G = ox.load_graphml(filepath=cached_graph_file_path)
             for u, v, data in G.edges(data=True):
                 data["ex_inf"] = literal_eval(data["ex_inf"])
-                data["turn_penalty"] = {int(key): value for key, value in data["turn_penalty"].items()}
+                data["turn_penalty"] = {
+                    int(key): value for key, value in data["turn_penalty"].items()
+                }
                 data["cost"] = literal_eval(data["cost"])
             if consolidate:
                 G = consolidate_nodes(G, tol=tol)

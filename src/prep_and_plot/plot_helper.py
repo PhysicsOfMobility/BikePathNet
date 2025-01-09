@@ -2,6 +2,7 @@
 This module includes all necessary helper functions for the plotting
 functionality.
 """
+
 import json
 import networkx as nx
 import numpy as np
@@ -33,16 +34,16 @@ def binding(x, kd: float, bmax: float):
     x : array_like
         X-values to calculate the binding function for.
     kd : numeric (e.g. float or int)
-        
+
     bmax : numeric (e.g. float or int)
-        
+
 
     Returns
     -------
     output : float | ndarray
         Returns binding function of x
     """
-    return (bmax*x)/(x+kd)
+    return (bmax * x) / (x + kd)
 
 
 def logistic(x, x0: float, L: float, k: float):
@@ -51,20 +52,20 @@ def logistic(x, x0: float, L: float, k: float):
     Parameters
     ----------
     x : array_like
-        
+
     x0 : numeric (e.g. float or int)
-        
+
     L : numeric (e.g. float or int)
-        
+
     k : numeric (e.g. float or int)
-        
+
 
     Returns
     -------
     output : ndarray
         Returns logistic function of values x
     """
-    return L/(1+np.exp(-k*(x-x0)))
+    return L / (1 + np.exp(-k * (x - x0)))
 
 
 def load_comparison_state_results(result_file: str) -> dict:
@@ -80,10 +81,12 @@ def load_comparison_state_results(result_file: str) -> dict:
     output : dict
         Result data loaded as dictionary.
     """
-    with open(result_file, 'r') as f:
+    with open(result_file, "r") as f:
         data = json.load(f)
 
-    data["edge_loads"] = {tuple(literal_eval(k)): v for k, v in data["edge_loads"].items()}
+    data["edge_loads"] = {
+        tuple(literal_eval(k)): v for k, v in data["edge_loads"].items()
+    }
     return data
 
 
@@ -107,10 +110,8 @@ def magnitude(x: float) -> int:
 
 
 def len_of_bikepath_by_type(
-        G: nx.MultiGraph | nx.MultiDiGraph,
-        ee: list,
-        buildup: bool = False
-    ) -> dict:
+    G: nx.MultiGraph | nx.MultiDiGraph, ee: list, buildup: bool = False
+) -> dict:
     """Calculates the length of bike paths along the different street types.
 
     Parameters
@@ -139,22 +140,20 @@ def len_of_bikepath_by_type(
     for e in ee:
         st = get_street_type(G, e)
         len_before = len_fraction[st][-1]
-        len_fraction[st].append(
-            len_before + G[e[0]][e[1]]["length"] / total_len[st]
-        )
+        len_fraction[st].append(len_before + G[e[0]][e[1]]["length"] / total_len[st])
         for s in [s for s in street_types if s != st]:
             len_fraction[s].append(len_fraction[s][-1])
     return len_fraction
 
 
 def coord_transf(
-        x: float,
-        y: float,
-        xmin: float = 0.0,
-        xmax: float = 1.0,
-        ymin: float = 0.0,
-        ymax: float = 1.0
-    ) -> tuple[float, float]:
+    x: float,
+    y: float,
+    xmin: float = 0.0,
+    xmax: float = 1.0,
+    ymin: float = 0.0,
+    ymax: float = 1.0,
+) -> tuple[float, float]:
     """Transfers the coordinates from data to relative coordiantes.
 
     Parameters
@@ -181,10 +180,8 @@ def coord_transf(
 
 
 def total_distance_traveled_list(
-        total_dist: dict,
-        total_dist_cs: dict,
-        buildup: bool = False
-    ) -> tuple[dict, dict]:
+    total_dist: dict, total_dist_cs: dict, buildup: bool = False
+) -> tuple[dict, dict]:
     """Renormalises all total distance traveled lists.
 
     Parameters
@@ -227,9 +224,7 @@ def total_distance_traveled_list(
         # On secondary
         on_secondary = [i["total_length_on_secondary"] for i in total_dist]
         dist["secondary"] = [x / on_all[idx] for idx, x in enumerate(on_secondary)]
-        dist_cs["secondary"] = (
-            total_dist_cs["total_length_on_secondary"] / on_all_cs
-        )
+        dist_cs["secondary"] = total_dist_cs["total_length_on_secondary"] / on_all_cs
         # On tertiary
         on_tertiary = [i["total_length_on_tertiary"] for i in total_dist]
         dist["tertiary"] = [x / on_all[idx] for idx, x in enumerate(on_tertiary)]
@@ -237,9 +232,7 @@ def total_distance_traveled_list(
 
         # On residential
         on_residential = [i["total_length_on_residential"] for i in total_dist]
-        dist["residential"] = [
-            x / on_all[idx] for idx, x in enumerate(on_residential)
-        ]
+        dist["residential"] = [x / on_all[idx] for idx, x in enumerate(on_residential)]
         dist_cs["residential"] = (
             total_dist_cs["total_length_on_residential"] / on_all_cs
         )
@@ -247,9 +240,7 @@ def total_distance_traveled_list(
         # On bike paths
         on_bike = [i["total_length_on_bike_paths"] for i in total_dist]
         dist["bike paths"] = [x / on_all[idx] for idx, x in enumerate(on_bike)]
-        dist_cs["bike paths"] = (
-            total_dist_cs["total_length_on_bike_paths"] / on_all_cs
-        )
+        dist_cs["bike paths"] = total_dist_cs["total_length_on_bike_paths"] / on_all_cs
     else:
         on_all = total_dist["on_all"]
         on_all_cs = total_dist_cs["on_all"]
@@ -270,9 +261,7 @@ def total_distance_traveled_list(
         # On secondary
         on_secondary = total_dist["on_secondary"]
         dist["secondary"] = [x / on_all[idx] for idx, x in enumerate(on_secondary)]
-        dist_cs["secondary"] = (
-                total_dist_cs["on_secondary"] / on_all_cs
-        )
+        dist_cs["secondary"] = total_dist_cs["on_secondary"] / on_all_cs
         # On tertiary
         on_tertiary = total_dist["on_tertiary"]
         dist["tertiary"] = [x / on_all[idx] for idx, x in enumerate(on_tertiary)]
@@ -280,19 +269,13 @@ def total_distance_traveled_list(
 
         # On residential
         on_residential = total_dist["on_residential"]
-        dist["residential"] = [
-            x / on_all[idx] for idx, x in enumerate(on_residential)
-        ]
-        dist_cs["residential"] = (
-                total_dist_cs["on_residential"] / on_all_cs
-        )
+        dist["residential"] = [x / on_all[idx] for idx, x in enumerate(on_residential)]
+        dist_cs["residential"] = total_dist_cs["on_residential"] / on_all_cs
 
         # On bike paths
         on_bike = total_dist["on_bike_path"]
         dist["bike paths"] = [x / on_all[idx] for idx, x in enumerate(on_bike)]
-        dist_cs["bike paths"] = (
-                total_dist_cs["on_bike_path"] / on_all_cs
-        )
+        dist_cs["bike paths"] = total_dist_cs["on_bike_path"] / on_all_cs
 
     if not buildup:
         for st, len_on_st in dist.items():
@@ -323,12 +306,8 @@ def sum_total_cost(cost: list, buildup: bool = False) -> list:
 
 
 def get_end(
-        tdt: dict,
-        tdt_opt: dict,
-        tdt_base: dict,
-        buildup: bool = False,
-        felt: bool = True
-    ) -> int:
+    tdt: dict, tdt_opt: dict, tdt_base: dict, buildup: bool = False, felt: bool = True
+) -> int:
     """Returns the index where the bikeability reaches 1.
 
     Parameters
@@ -396,10 +375,10 @@ def get_street_type_ratio(G: nx.MultiGraph | nx.MultiDiGraph) -> dict:
 
 
 def calc_polygon_area(
-        polygon: shapely.Polygon,
-        remove: Iterable[shapely.Polygon] | None = None,
-        unit: str ="sqkm"
-    ) -> float:
+    polygon: shapely.Polygon,
+    remove: Iterable[shapely.Polygon] | None = None,
+    unit: str = "sqkm",
+) -> float:
     """Calculates the area of a given lat/long Polygon.
 
     Parameters
@@ -410,7 +389,8 @@ def calc_polygon_area(
         Polygons inside the original polygon to exclude from the
         area calculation (Default value = None)
     unit : str
-        Unit in which the area is returned km^2 = 'sqkm' or m^2 = 'sqm' (Default value = "sqkm")
+        Unit in which the area is returned km^2 = 'sqkm' or m^2 = 'sqm'.
+        (Default value = "sqkm")
 
     Returns
     -------
@@ -423,9 +403,7 @@ def calc_polygon_area(
         partial(
             pyproj.transform,
             pyproj.Proj(init="EPSG:4326"),
-            pyproj.Proj(
-                proj="aea", lat_1=polygon.bounds[1], lat_2=polygon.bounds[3]
-            ),
+            pyproj.Proj(proj="aea", lat_1=polygon.bounds[1], lat_2=polygon.bounds[3]),
         ),
         polygon,
     )
@@ -436,9 +414,7 @@ def calc_polygon_area(
                 partial(
                     pyproj.transform,
                     pyproj.Proj("EPSG:4326"),
-                    pyproj.Proj(
-                        proj="aea", lat_1=p.bounds[1], lat_2=p.bounds[3]
-                    ),
+                    pyproj.Proj(proj="aea", lat_1=p.bounds[1], lat_2=p.bounds[3]),
                 ),
                 p,
             )
@@ -451,13 +427,13 @@ def calc_polygon_area(
 
 
 def get_edge_color_bp(
-        G: nx.MultiGraph | nx.MultiDiGraph,
-        edges: list,
-        color: str,
-        ex_inf: bool,
-        color_ex_inf: str,
-        color_unused: str
-    ) -> list:
+    G: nx.MultiGraph | nx.MultiDiGraph,
+    edges: list,
+    color: str,
+    ex_inf: bool,
+    color_ex_inf: str,
+    color_unused: str,
+) -> list:
     """
 
     Parameters
@@ -478,7 +454,7 @@ def get_edge_color_bp(
     Returns
     -------
     output : list
-    
+
     """
     ec = []
     for u, v, d in G.edges(data=True):
@@ -494,12 +470,11 @@ def get_edge_color_bp(
 
 
 def get_edge_color(
-        G: nx.MultiGraph | nx.MultiDiGraph,
-        edges: list,
-        attr: int | float | str,
-        color: str
-    ) -> list:
-    """Return edge color list for G, edges have the given color if they are part of the edges list and therefore have the given attribute, otherwise they have the color '#999999'.
+    G: nx.MultiGraph | nx.MultiDiGraph, edges: list, attr: int | float | str, color: str
+) -> list:
+    """Return edge color list for G, edges have the given color if they are part of
+    the edges list and therefore have the given attribute, otherwise they have the
+    color '#999999'.
 
     Parameters
     ----------
@@ -544,20 +519,18 @@ def get_edge_color_st(G: nx.MultiGraph | nx.MultiDiGraph, colors: dict) -> list:
         Edge colors for graph G
 
     """
-    return [
-        colors[get_street_type(G, e)] for e in G.edges()
-    ]
+    return [colors[get_street_type(G, e)] for e in G.edges()]
 
 
 def plot_barh(
-        data: dict,
-        colors: dict,
-        save: str,
-        x_label: str = "",
-        title: str = "",
-        figsize: tuple[float, float] = (10, 10),
-        dpi: int = 150,
-    ):
+    data: dict,
+    colors: dict,
+    save: str,
+    x_label: str = "",
+    title: str = "",
+    figsize: tuple[float, float] = (10, 10),
+    dpi: int = 150,
+):
     """Plot and save a horizontal bar.
 
     Parameters
@@ -597,9 +570,7 @@ def plot_barh(
         if values[idx] > 0.05 * max_value:
             r, g, b, _ = color
             text_color = (
-                "white"
-                if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25
-                else "black"
+                "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
             )
             ax.text(
                 x,
@@ -632,15 +603,15 @@ def plot_barh(
 
 
 def plot_barh_stacked(
-        data: dict,
-        stacks: list,
-        colors: list,
-        save: str,
-        title: str = "",
-        figsize: tuple[float, float] = (10, 10),
-        dpi: int = 150,
-        legend=False,
-    ):
+    data: dict,
+    stacks: list,
+    colors: list,
+    save: str,
+    title: str = "",
+    figsize: tuple[float, float] = (10, 10),
+    dpi: int = 150,
+    legend=False,
+):
     """Plot and save a stacked horizontal bar.
 
     Parameters
@@ -684,15 +655,11 @@ def plot_barh_stacked(
     for i, (colname, color) in enumerate(zip(stacks, colors)):
         widths = values[:, i]
         starts = values_cum[:, i] - widths
-        ax.barh(
-            labels, widths, left=starts, height=0.5, label=colname, color=color
-        )
+        ax.barh(labels, widths, left=starts, height=0.5, label=colname, color=color)
         xcenters = starts + widths / 2
 
         r, g, b, _ = color
-        text_color = (
-            "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
-        )
+        text_color = "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
         for y, (x, c) in enumerate(zip(xcenters, widths)):
             if c != 0.0:
                 ax.text(
@@ -715,17 +682,17 @@ def plot_barh_stacked(
 
 
 def plot_barv(
-        data: dict,
-        colors: dict,
-        save: str,
-        y_label: str = "",
-        title: str = "",
-        ymin: float = -0.1,
-        ymax: float = 0.7,
-        xticks: bool = True,
-        figsize: tuple[float, float] = (10, 10),
-        dpi: int = 150,
-    ):
+    data: dict,
+    colors: dict,
+    save: str,
+    y_label: str = "",
+    title: str = "",
+    ymin: float = -0.1,
+    ymax: float = 0.7,
+    xticks: bool = True,
+    figsize: tuple[float, float] = (10, 10),
+    dpi: int = 150,
+):
     """Plot and save a vertical bar.
 
     Parameters
@@ -767,9 +734,7 @@ def plot_barv(
         y = values[idx] / 2
         x = x_pos[idx]
         r, g, b, _ = color
-        text_color = (
-            "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
-        )
+        text_color = "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
         ax.text(
             x,
             y,
@@ -797,16 +762,16 @@ def plot_barv(
 
 
 def plot_barv_stacked(
-        labels: list,
-        data: dict,
-        colors: dict,
-        title: str = "",
-        ylabel: str = "",
-        save: str = "",
-        width: float = 0.8,
-        figsize: tuple[float, float] = (10, 12),
-        dpi=150,
-    ):
+    labels: list,
+    data: dict,
+    colors: dict,
+    title: str = "",
+    ylabel: str = "",
+    save: str = "",
+    width: float = 0.8,
+    figsize: tuple[float, float] = (10, 12),
+    dpi=150,
+):
     """Plot and save a stacked vertical bar.
 
     Parameters
@@ -862,9 +827,7 @@ def plot_barv_stacked(
                 x = x_pos[v_idx]
                 r, g, b, _ = color
                 text_color = (
-                    "white"
-                    if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25
-                    else "black"
+                    "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
                 )
                 ax.text(
                     x,
@@ -890,20 +853,20 @@ def plot_barv_stacked(
 
 
 def plot_histogram(
-        data,
-        save_path: str,
-        bins = None,
-        cumulative: bool = False,
-        density: bool = False,
-        xlabel="",
-        ylabel="",
-        xlim=None,
-        xaxis: bool = True,
-        xticks: dict | None = None,
-        cm: ListedColormap | None = None,
-        figsize=(4, 4),
-        dpi=150,
-    ):
+    data,
+    save_path: str,
+    bins=None,
+    cumulative: bool = False,
+    density: bool = False,
+    xlabel="",
+    ylabel="",
+    xlim=None,
+    xaxis: bool = True,
+    xticks: dict | None = None,
+    cm: ListedColormap | None = None,
+    figsize=(4, 4),
+    dpi=150,
+):
     """Plot and save a histogram.
 
     Parameters
@@ -999,29 +962,30 @@ def plot_histogram(
 
 
 def plot_graph(
-        G: nx.MultiGraph | nx.MultiDiGraph,
-        *,
-        ax: Axes | None = None,
-        figsize: tuple[float, float] = (8, 8),
-        bgcolor: str = "#111111",
-        node_color: str | Sequence[str] = "w",
-        node_size: float | Sequence[float] = 15,
-        node_alpha: float | None = None,
-        node_edgecolor: str | Iterable[str] = "none",
-        node_zorder: int = 1,
-        edge_color: str | Iterable[str] = "#999999",
-        edge_linewidth: float | Sequence[float] = 1,
-        edge_alpha: float | None = None,
-        edge_zorder: int | Iterable[int] = 1,
-        bbox: tuple[float, float, float, float] | None = None,
-        show: bool = True,
-        close: bool = False,
-        save: bool = False,
-        filepath: str | Path | None = None,
-        dpi: int = 300,
-    ) -> tuple[Figure, Axes]:
-    """Adaption of the plot_graph function of the osmnx package in order to have a
-    different zorders for different edges. Visualize a graph.
+    G: nx.MultiGraph | nx.MultiDiGraph,
+    *,
+    ax: Axes | None = None,
+    figsize: tuple[float, float] = (8, 8),
+    bgcolor: str = "#111111",
+    node_color: str | Sequence[str] = "w",
+    node_size: float | Sequence[float] = 15,
+    node_alpha: float | None = None,
+    node_edgecolor: str | Iterable[str] = "none",
+    node_zorder: int = 1,
+    edge_color: str | Iterable[str] = "#999999",
+    edge_linewidth: float | Sequence[float] = 1,
+    edge_alpha: float | None = None,
+    edge_zorder: int | Iterable[int] = 1,
+    bbox: tuple[float, float, float, float] | None = None,
+    show: bool = True,
+    close: bool = False,
+    save: bool = False,
+    filepath: str | Path | None = None,
+    dpi: int = 300,
+) -> tuple[Figure, Axes]:
+    """Adaption of the plot_graph function of the osmnx package in order to have
+    different zorder for different edges, see https://osmnx.readthedocs.io/en/stable/.
+    Visualize a graph.
 
     Parameters
     ----------
@@ -1076,7 +1040,9 @@ def plot_graph(
     """
 
     max_node_size = max(node_size) if hasattr(node_size, "__iter__") else node_size
-    max_edge_lw = max(edge_linewidth) if hasattr(edge_linewidth, "__iter__") else edge_linewidth
+    max_edge_lw = (
+        max(edge_linewidth) if hasattr(edge_linewidth, "__iter__") else edge_linewidth
+    )
     if max_node_size <= 0 and max_edge_lw <= 0:  # pragma: no cover
         msg = "Either node_size or edge_linewidth must be > 0 to plot something."
         raise ValueError(msg)
@@ -1101,11 +1067,15 @@ def plot_graph(
         linewidth = gdf_edges.linewidth if edge_linewidth is not None else None
         alpha = gdf_edges.alpha if edge_alpha is not None else None
 
-        ax = gdf_edges.plot(ax=ax, color=color, lw=linewidth, alpha=alpha, zorder=1, facecolor=bgcolor)
+        ax = gdf_edges.plot(
+            ax=ax, color=color, lw=linewidth, alpha=alpha, zorder=1, facecolor=bgcolor
+        )
 
     if max_node_size > 0:
         # scatter plot the nodes' x/y coordinates
-        gdf_nodes = ox.convert.graph_to_gdfs(G, edges=False, node_geometry=False)[["x", "y"]]
+        gdf_nodes = ox.convert.graph_to_gdfs(G, edges=False, node_geometry=False)[
+            ["x", "y"]
+        ]
         ax.scatter(
             x=gdf_nodes["x"],
             y=gdf_nodes["y"],

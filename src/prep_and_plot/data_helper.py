@@ -1,6 +1,8 @@
 """
-This module includes all necessary helper functions for the data preparation and handling.
+This module includes all necessary helper functions for the data preparation and
+handling.
 """
+
 import json
 import srtm
 import warnings
@@ -50,7 +52,8 @@ def write_csv(df: pd.DataFrame, path: str):
     df.to_csv(path, index=False)
 
 
-def load_demand(path: str) -> dict: return load_algorithm_results(path)
+def load_demand(path: str) -> dict:
+    return load_algorithm_results(path)
 
 
 def load_algorithm_results(path: str) -> dict:
@@ -65,7 +68,7 @@ def load_algorithm_results(path: str) -> dict:
     -------
 
     """
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
     return data
 
@@ -96,14 +99,15 @@ def load_algorithm_params(path: str, params: dict) -> dict:
     path : str
         Filepath
     params : dict | None
-        Dict with the params for plots etc., check 'setup_params.py' in the 'scripts' folder. (Default value = None)
+        Params for data loading etc., check 'setup_params.py' in the 'scripts' folder.
+        (Default value = None)
 
     Returns
     -------
     output: dict
         Params updated by algorithm params
     """
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     params["street_cost"] = data["street_cost"]
@@ -114,7 +118,12 @@ def load_algorithm_params(path: str, params: dict) -> dict:
     return params
 
 
-def get_street_type(G: nx.MultiGraph | nx.MultiDiGraph, edge: tuple[int, int] | tuple[int, int, int], motorway: set | list | None = None, bike_paths: set | list | None = None) -> str:
+def get_street_type(
+    G: nx.MultiGraph | nx.MultiDiGraph,
+    edge: tuple[int, int] | tuple[int, int, int],
+    motorway: set | list | None = None,
+    bike_paths: set | list | None = None,
+) -> str:
     """Returns the street type of the edge. Street types are reduced to
     primary, secondary, tertiary and residential.
 
@@ -137,7 +146,7 @@ def get_street_type(G: nx.MultiGraph | nx.MultiDiGraph, edge: tuple[int, int] | 
     if motorway is None:
         motorway = ["motorway", "motorway_link"]
     if bike_paths is None:
-        bike_paths = {'track', 'service', 'pedestrian', 'cycleway', 'busway', 'path'}
+        bike_paths = {"track", "service", "pedestrian", "cycleway", "busway", "path"}
     if "trunk" not in motorway:
         primary = ["primary", "primary_link", "trunk", "trunk_link"]
     else:
@@ -148,13 +157,22 @@ def get_street_type(G: nx.MultiGraph | nx.MultiDiGraph, edge: tuple[int, int] | 
     street_type = G.edges[edge]["highway"]
 
     if isinstance(street_type, list):
-        street_type_ranked = {st: 0 if st in motorway else
-                                  1 if st in primary else
-                                  2 if st in secondary else
-                                  3 if st in tertiary else
-                                  5 if st in bike_paths else
-                                  4 for st in
-                              street_type}
+        street_type_ranked = {
+            st: (
+                0
+                if st in motorway
+                else (
+                    1
+                    if st in primary
+                    else (
+                        2
+                        if st in secondary
+                        else 3 if st in tertiary else 5 if st in bike_paths else 4
+                    )
+                )
+            )
+            for st in street_type
+        }
         street_type = sorted(street_type_ranked, key=street_type_ranked.get)[0]
     elif isinstance(street_type, str):
         street_type = street_type
@@ -175,7 +193,9 @@ def get_street_type(G: nx.MultiGraph | nx.MultiDiGraph, edge: tuple[int, int] | 
         return "residential"
 
 
-def get_lat_long_trips(path_to_trips: str, polygon: Polygon | None = None, delim: str = ",") -> tuple[list, list, list, list, list]:
+def get_lat_long_trips(
+    path_to_trips: str, polygon: Polygon | None = None, delim: str = ","
+) -> tuple[list, list, list, list, list]:
     """Returns five lists. The first stores the number of cyclists on this trip,
     the second the start latitude, the third the start longitude,
     the fourth the end latitude, the fifth the end longitude.
@@ -207,25 +227,19 @@ def get_lat_long_trips(path_to_trips: str, polygon: Polygon | None = None, delim
         nbr_of_trips = list(trips["number of trips"])
         return nbr_of_trips, start_lat, start_long, end_lat, end_long
     else:
-        trips["start in polygon"] = trips[
-            ["start latitude", "start longitude"]
-        ].apply(
+        trips["start in polygon"] = trips[["start latitude", "start longitude"]].apply(
             lambda row: polygon.intersects(
                 Point(row["start longitude"], row["start latitude"])
             ),
             axis=1,
         )
-        trips["end in polygon"] = trips[
-            ["end latitude", "end longitude"]
-        ].apply(
+        trips["end in polygon"] = trips[["end latitude", "end longitude"]].apply(
             lambda row: polygon.intersects(
                 Point(row["end longitude"], row["end latitude"])
             ),
             axis=1,
         )
-        trips["in polygon"] = trips[
-            ["start in polygon", "end in polygon"]
-        ].apply(
+        trips["in polygon"] = trips[["start in polygon", "end in polygon"]].apply(
             lambda row: row["start in polygon"] and row["end in polygon"],
             axis=1,
         )
@@ -237,7 +251,9 @@ def get_lat_long_trips(path_to_trips: str, polygon: Polygon | None = None, delim
         return nbr_of_trips, start_lat, start_long, end_lat, end_long
 
 
-def get_bbox_of_trips(path_to_trips: str, polygon: Polygon | None = None, delim: str = ",") -> tuple[float, float, float, float]:
+def get_bbox_of_trips(
+    path_to_trips: str, polygon: Polygon | None = None, delim: str = ","
+) -> tuple[float, float, float, float]:
     """Returns the bbox of the trips given by path_to_trips. If only trips inside
     a polygon should be considered, you can pass it to the polygon param.
 
@@ -283,7 +299,7 @@ def load_trips(G, path_to_trips, polygon=None, delim=","):
     delim : str
         Delimiter of the trips csv. (Default value = ")
     " :
-        
+
 
     Returns
     -------
@@ -307,11 +323,13 @@ def load_trips(G, path_to_trips, polygon=None, delim=","):
     trip_nbrs = {}
     for trip in range(len(nbr_of_trips)):
         if (int(start_nodes[trip]), int(end_nodes[trip])) in trip_nbrs.keys():
-            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] += \
-                int(nbr_of_trips[trip])
+            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] += int(
+                nbr_of_trips[trip]
+            )
         else:
-            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = \
-                int(nbr_of_trips[trip])
+            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = int(
+                nbr_of_trips[trip]
+            )
 
     stations = set()
     for k, v in trip_nbrs.items():
@@ -329,7 +347,8 @@ def trip_cyclist_type_split(trips: dict, cyclist_split: dict | None = None) -> d
     trips : dict
         Demand
     cyclist_split : dict | None
-         How to split the demand {cyclist_id: split factor}, split factors should sum to 1. (Default value = None)
+        How to split the demand {cyclist_id: split factor}, split factors should
+        sum to 1. (Default value = None)
 
     Returns
     -------
@@ -338,7 +357,10 @@ def trip_cyclist_type_split(trips: dict, cyclist_split: dict | None = None) -> d
     """
     if cyclist_split is None:
         cyclist_split = {1: 1}
-    return {trip_od: {cyclist: trip_nbr * split for cyclist, split in cyclist_split.items()} for trip_od, trip_nbr in trips.items()}
+    return {
+        trip_od: {cyclist: trip_nbr * split for cyclist, split in cyclist_split.items()}
+        for trip_od, trip_nbr in trips.items()
+    }
 
 
 def save_polygon_as_json(polygon: Polygon, save_path: str):
@@ -354,7 +376,19 @@ def save_polygon_as_json(polygon: Polygon, save_path: str):
     -------
 
     """
-    polygon_data = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [list(polygon.exterior.coords)]}}]}
+    polygon_data = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [list(polygon.exterior.coords)],
+                },
+            }
+        ],
+    }
     with open(save_path, "w") as fp:
         json.dump(polygon_data, fp)
 
@@ -449,7 +483,14 @@ def get_bbox_from_polygon(polygon: Polygon) -> tuple[float, float, float, float]
     return east, south, west, north
 
 
-def drop_invalid_values(csv: str, column: str, values: list, save: bool = False, save_path: str = "", delim: str = ",") -> pd.DataFrame:
+def drop_invalid_values(
+    csv: str,
+    column: str,
+    values: list,
+    save: bool = False,
+    save_path: str = "",
+    delim: str = ",",
+) -> pd.DataFrame:
     """Drops all rows if they have the given invalid value in the given column.
 
     Parameters
@@ -482,7 +523,9 @@ def drop_invalid_values(csv: str, column: str, values: list, save: bool = False,
     return df
 
 
-def consolidate_nodes(G: nx.MultiGraph | nx.MultiDiGraph, tol: float) -> nx.MultiGraph | nx.MultiDiGraph:
+def consolidate_nodes(
+    G: nx.MultiGraph | nx.MultiDiGraph, tol: float
+) -> nx.MultiGraph | nx.MultiDiGraph:
     """Consolidates intersections of graph g with given tolerance in meters.
 
     Parameters
@@ -515,8 +558,11 @@ def consolidate_nodes(G: nx.MultiGraph | nx.MultiDiGraph, tol: float) -> nx.Mult
     return G
 
 
-def get_traffic_signal_nodes(G: nx.MultiGraph | nx.MultiDiGraph, tol: float = 10) -> set[int]:
-    """Returns a list with all nodes which have a traffic signal at the intersection with max. size 'tol'.
+def get_traffic_signal_nodes(
+    G: nx.MultiGraph | nx.MultiDiGraph, tol: float = 10
+) -> set[int]:
+    """Returns a list with all nodes which have a traffic signal at the intersection
+    with max. size 'tol'.
 
     Parameters
     ----------
@@ -555,7 +601,9 @@ def get_traffic_signal_nodes(G: nx.MultiGraph | nx.MultiDiGraph, tol: float = 10
     return set(traffic_signal_list)
 
 
-def check_existing_infrastructure(exinf: str | list[str], ex_inf_type: list[str] | None = None) -> bool:
+def check_existing_infrastructure(
+    exinf: str | list[str], ex_inf_type: list[str] | None = None
+) -> bool:
     """Check if the existing bike path/lane infrastructure meets the required
     type defined in ex_inf_type or not. Check OSM wiki for possible values.
     https://wiki.openstreetmap.org/wiki/Key:cycleway
@@ -591,7 +639,11 @@ def check_existing_infrastructure(exinf: str | list[str], ex_inf_type: list[str]
         return False
 
 
-def get_turn_angle(edge_in: tuple[int, int, int], edge_out: tuple[int, int, int], G: nx.MultiGraph | nx.MultiDiGraph) -> float:
+def get_turn_angle(
+    edge_in: tuple[int, int, int],
+    edge_out: tuple[int, int, int],
+    G: nx.MultiGraph | nx.MultiDiGraph,
+) -> float:
     """Returns the turn angle between 'edge_in' and 'edge_out'.
 
     Parameters
@@ -625,8 +677,11 @@ def get_turn_angle(edge_in: tuple[int, int, int], edge_out: tuple[int, int, int]
             return bearing_in - bearing_out + 540
 
 
-def get_turn_order(edge_out: tuple[int, int, int], G: nx.MultiGraph | nx.MultiDiGraph) -> list[tuple[int, int, int]]:
-    """Returns the order of all ingoing edges to the 'edge_out' from smallest to largest turn angle.
+def get_turn_order(
+    edge_out: tuple[int, int, int], G: nx.MultiGraph | nx.MultiDiGraph
+) -> list[tuple[int, int, int]]:
+    """Returns the order of all ingoing edges to the 'edge_out' from smallest to
+    largest turn angle.
 
     Parameters
     ----------
@@ -647,8 +702,11 @@ def get_turn_order(edge_out: tuple[int, int, int], G: nx.MultiGraph | nx.MultiDi
     return [k for k, v in sorted(turns.items(), key=lambda item: item[1])]
 
 
-def set_intersection_size(G: nx.MultiGraph | nx.MultiDiGraph) -> nx.MultiGraph | nx.MultiDiGraph:
-    """Sets the intersection size, defined by road size and existence of traffic signals.
+def set_intersection_size(
+    G: nx.MultiGraph | nx.MultiDiGraph,
+) -> nx.MultiGraph | nx.MultiDiGraph:
+    """Sets the intersection size, defined by road size and existence of traffic
+    signals.
 
     Parameters
     ----------
@@ -679,8 +737,11 @@ def set_intersection_size(G: nx.MultiGraph | nx.MultiDiGraph) -> nx.MultiGraph |
     return G
 
 
-def set_turn_penalty(G: nx.MultiGraph | nx.MultiDiGraph) -> nx.MultiGraph | nx.MultiDiGraph:
-    """Sets the turn penalty according to intersections size and if a large streets has to be crossed.
+def set_turn_penalty(
+    G: nx.MultiGraph | nx.MultiDiGraph,
+) -> nx.MultiGraph | nx.MultiDiGraph:
+    """Sets the turn penalty according to intersections size and if a large streets has
+    to be crossed.
 
     Parameters
     ----------
@@ -711,15 +772,25 @@ def set_turn_penalty(G: nx.MultiGraph | nx.MultiDiGraph) -> nx.MultiGraph | nx.M
     return G
 
 
-def prepare_downloaded_map(G: nx.MultiGraph | nx.MultiDiGraph, trunk: bool = False, consolidate: bool = False, intersection_tol: float = 35, ex_inf: list[str] | None = None) -> nx.MultiDiGraph:
-    """Prepares the downloaded map. Removes all motorway edges and if trunk=False also all trunk edges. Turns it to undirected, removes all isolated nodes using networkxs isolates() function and reduces the graph to the greatest connected component using osmnxs get_largest_component().
+def prepare_downloaded_map(
+    G: nx.MultiGraph | nx.MultiDiGraph,
+    trunk: bool = False,
+    consolidate: bool = False,
+    intersection_tol: float = 35,
+    ex_inf: list[str] | None = None,
+) -> nx.MultiDiGraph:
+    """Prepares the downloaded map. Removes all motorway edges and if trunk=False also
+    all trunk edges. Turns it to undirected, removes all isolated nodes using
+    networkxs isolates() function and reduces the graph to the greatest connected
+    component using osmnxs get_largest_component().
 
     Parameters
     ----------
     G : nx.MultiGraph | nx.MultiDiGraph
         Graph to clean.
     trunk : bool
-        Decides if trunk should be kept or not. If you want to keep trunk in the graph, set to True. (Default value = False)
+        Decides if trunk should be kept or not. If you want to keep trunk in the graph,
+        set to True. (Default value = False)
     consolidate : bool
         Set true if intersections should bes consolidated. (Default value = False)
     intersection_tol : float
@@ -753,8 +824,7 @@ def prepare_downloaded_map(G: nx.MultiGraph | nx.MultiDiGraph, trunk: bool = Fal
         elif "bicycle" in d.keys() and d["bicycle"] == "use_sidepath":
             d["ex_inf"] = True
         elif (
-            "sidewalk:both:bicycle" in d.keys()
-            and d["sidewalk:both:bicycle"] == "yes"
+            "sidewalk:both:bicycle" in d.keys() and d["sidewalk:both:bicycle"] == "yes"
         ):
             d["ex_inf"] = True
         elif (
@@ -763,8 +833,7 @@ def prepare_downloaded_map(G: nx.MultiGraph | nx.MultiDiGraph, trunk: bool = Fal
         ):
             d["ex_inf"] = True
         elif (
-            "sidewalk:left:bicycle" in d.keys()
-            and d["sidewalk:left:bicycle"] == "yes"
+            "sidewalk:left:bicycle" in d.keys() and d["sidewalk:left:bicycle"] == "yes"
         ):
             d["ex_inf"] = True
         elif (
@@ -816,7 +885,10 @@ def prepare_downloaded_map(G: nx.MultiGraph | nx.MultiDiGraph, trunk: bool = Fal
         try:
             d["elevation"] = srtm_data.get_altitude(latitude=lat, longitude=lng)
         except srtm.exceptions.NoHeightMapDataException:
-            warnings.warn(f"SRTM directory '{srtm_data.hgt_dir}' is missing files. Setting height 0 for all nodes.")
+            warnings.warn(
+                f"SRTM directory '{srtm_data.hgt_dir}' is missing files. "
+                f"Setting height 0 for all nodes."
+            )
             d["elevation"] = 0
         if consolidate:
             if isinstance(d["osmid_original"], str):
@@ -846,7 +918,7 @@ def prepare_downloaded_map(G: nx.MultiGraph | nx.MultiDiGraph, trunk: bool = Fal
     G = ox.truncate.largest_component(G, strongly=True)
     print("Reduce to largest connected component")
 
-    G = nx.convert_node_labels_to_integers(G, first_label=1, ordering='default')
+    G = nx.convert_node_labels_to_integers(G, first_label=1, ordering="default")
 
     # Calculate slope in percent
     print("Adding street gradients.")
@@ -876,13 +948,13 @@ def prepare_downloaded_map(G: nx.MultiGraph | nx.MultiDiGraph, trunk: bool = Fal
 
 
 def download_map_by_bbox(
-        bbox: tuple[float, float, float, float],
-        network_type: str = "drive",
-        trunk: bool = False,
-        consolidate: bool = False,
-        tol: float = 35,
-        truncate_by_edge: bool = False,
-        params: dict| None = None,
+    bbox: tuple[float, float, float, float],
+    network_type: str = "drive",
+    trunk: bool = False,
+    consolidate: bool = False,
+    tol: float = 35,
+    truncate_by_edge: bool = False,
+    params: dict | None = None,
 ) -> nx.MultiDiGraph:
     """Downloads a drive graph from osm given by the bbox and cleans it for usage.
 
@@ -900,9 +972,11 @@ def download_map_by_bbox(
     tol : float
         Tolerance of intersection consolidation in meters (Default value = 35)
     truncate_by_edge : bool
-        if True, retain node if it’s outside bounding box but at least one of node’s neighbors are within bounding box (Default value = False)
+        if True, retain node if it’s outside bounding box but at least one of node’s
+        neighbors are within bounding box (Default value = False)
     params : dict | None
-        Dict with the params for plots etc., check 'setup_params.py' in the 'scripts' folder. (Default value = None)
+        Params for data loading etc., check 'setup_params.py' in the 'scripts' folder.
+        (Default value = None)
 
     Returns
     -------
@@ -948,16 +1022,17 @@ def download_map_by_bbox(
 
 
 def download_map_by_name(
-        city: str,
-        nominatim_result: int = 1,
-        network_type="drive",
-        trunk: bool = False,
-        consolidate: bool = False,
-        tol: float = 35,
-        truncate_by_edge: bool = False,
-        params: dict | None = None,
+    city: str,
+    nominatim_result: int = 1,
+    network_type="drive",
+    trunk: bool = False,
+    consolidate: bool = False,
+    tol: float = 35,
+    truncate_by_edge: bool = False,
+    params: dict | None = None,
 ) -> nx.MultiDiGraph:
-    """Downloads a drive graph from osm given by the name and geocode of the nominatim database and  cleans it for usage.
+    """Downloads a drive graph from osm given by the name and geocode of the nominatim
+    database and  cleans it for usage.
 
     Parameters
     ----------
@@ -968,15 +1043,18 @@ def download_map_by_name(
     network_type : str
         Network type for download, see ox.graph_from_bbox (Default value = "drive")
     trunk : bool
-        Decides if trunk should be kept or not. If you want to keep trunk in the graph, set to True. (Default value = False)
+        Decides if trunk should be kept or not. If you want to keep trunk in the graph,
+        set to True. (Default value = False)
     consolidate : bool
         Set true if intersections should bes consolidated. (Default value = False)
     tol : float
         Tolerance of intersection consolidation in meters (Default value = 35)
     truncate_by_edge : bool
-        if True, retain node if it’s outside the area but at least one of node’s neighbors are within the area (Default value = False)
+        if True, retain node if it’s outside the area but at least one of node’s
+        neighbors are within the area (Default value = False)
     params : dict | None
-        Dict with the params for plots etc., check 'setup_params.py' in the 'scripts' folder. (Default value = None)
+        Params for data loading etc., check 'setup_params.py' in the 'scripts' folder.
+        (Default value = None)
 
     Returns
     -------
@@ -1038,15 +1116,19 @@ def download_map_by_polygon(
     network_type : str
         Network type for download, see ox.graph_from_bbox (Default value = "drive")
     trunk : bool
-        Decides if trunk should be kept or not. If you want to keep trunk in the graph, set to True. (Default value = False)
+        Decides if trunk should be kept or not. If you want to keep trunk in the graph,
+        set to True. (Default value = False)
     consolidate : bool
         Set true if intersections should bes consolidated. (Default value = False)
     tol : float
         Tolerance of intersection consolidation in meters (Default value = 35)
     truncate_by_edge : bool
-        if True, retain node if it’s outside bounding box but at least one of node’s neighbors are within bounding box (Default value = False)
+        if True, retain node if it’s outside bounding box but at least one of node’s
+        neighbors are within bounding box (Default value = False)
     params : dict | None
-        Dict with the params for plots etc., check 'setup_params.py' in the 'scripts' folder. (Default value = None)
+        Params for data loading etc., check 'setup_params.py' in the 'scripts' folder.
+        (Default value = None)
+
     Returns
     -------
     output :  nx.MultiDiGraph
