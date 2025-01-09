@@ -1,14 +1,52 @@
 name = "BikePathNet"
+uuid = "651a3fd7-49cb-4692-89d4-bec70e67c00f"
 authors = ["Christoph Steinacker"]
+version = "0.1.0"
 
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
+ProgressBars = "49802e3a-d2f1-5c88-81d8-b72133a6f568"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Serde = "db9b398d-9517-45f8-9a95-92af99003e0e"
+Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+
+[weakdeps]
+GraphMakie = "1ecd5474-83a3-4783-bb4f-06765db800d2"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+
+[extensions]
+GraphPlottingExt = ["Makie", "GraphMakie"]
 
 [compat]
+DataStructures = "0.18"
+DocStringExtensions = "0.9"
 DrWatson = "2.12.1"
+EzXML = "1.2"
+Graphs = "1.9"
+HDF5 = "0.17"
+JSON = "0.21"
+LoggingExtras = "1.0"
+Serde = "2.0"
+Setfield = "1.1"
+SparseArrays = "1.9"
+TestItems = "0.1"
 julia = "1.8.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
+
+[targets]
+test = ["Test", "TestItemRunner"]

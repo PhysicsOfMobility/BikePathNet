@@ -3,11 +3,13 @@
 ################################################################################
 
 # Folders to ignore - files may be too large, too many, etc. NOTE: EDIT IF NEEDED.
-/data
 /videos
 /plots
 /notebooks
 /_research
+/data/input
+/data/logs
+/data/output
 
 ################################################################################
 #                                    Julia                                     #
@@ -36,7 +38,7 @@ docs/site/
 ################################################################################
 #                                   Python                                     #
 ################################################################################
-*/__pycache__
+**/__pycache__
 */cache
 cache/
 .idea
@@ -427,3 +429,14 @@ $RECYCLE.BIN/
 
 ## Acknowledgements
 # Many thanks to `https://gitignore.io/`, written and maintained by Joe Blau, which contributed much material to this gitignore file.
+
+
+test/data/
+docs/Manifest.toml
+docs/node_modules
+docs/src/.vitepress/cache
+docs/src/.vitepress/dist
+docs/.vitepress/cache
+docs/.vitepress/dist
+docs/.DS_Store
+docs/package-lock.json

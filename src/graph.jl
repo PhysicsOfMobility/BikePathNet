@@ -1,221 +1,139 @@
-struct Graph{T}
-    nodes :: Dict{T, Node{T}}
-    adjacency_lists :: Dict{T, Set{T}}
-    edges :: Dict{Tuple{T,T}, Edge{T}}
+"""
+Node of a [`Graph`](@ref), [`SegmentGraph`](@ref) or [`SpatialGraph`](@ref)
+which represents an intersection in the street network.
+"""
+struct Node
+    "unique id of the node"
+    id::Int
+    "size of the intersection"
+    size::Symbol
+    "`true` if the node is part of a bike highway, `false` otherwise"
+    bike_highway::Bool
 end
 
-function Graph{T}() where T
-    return Graph{T}(Dict(), Dict(), Dict())
+"""
+Edge of a [`Graph`](@ref), [`SegmentGraph`](@ref) or [`SpatialGraph`](@ref)
+which represents a directed street in the street network.
+"""
+@kwdef mutable struct Edge
+    "source id of the street"
+    source::Int
+    "destination id of the street"
+    destination::Int
+    "physical length of the street in meters"
+    length::Float64
+    "type of the street (e.g. `:residential`, `:primary`)"
+    street_type::Symbol
+    "slope of the street in percent (rise over run)"
+    slope::Float64
+    "size of penalty when turning from this edge onto another edge, indexed by destination node id of the edge we turn on"
+    turn_badness::Dict{Int,Symbol}
+    "size of penalty for travelling along this edge"
+    time_penalty::Symbol
+    "`true` if there is existing bike infrastructure on this edge, `false` otherwise"
+    ex_inf::Bool
+    "`true` if no infrastructure can be built on this edge, `false` otherwise"
+    blocked::Bool
+    "`true` if there exists a bike path along this edge, `false` otherwise"
+    bike_path::Bool
+    "`true` if the edge is part of a bike highway, `false` otherwise"
+    bike_highway::Bool
+    "`true` if the edge is a ramp leading on or of a bike highway, `false` otherwise"
+    ramp::Bool
+    "cost of build a bike path along this edge"
+    cost::Float64
+    "id of the segment the edge belongs to (only used with the [`SegmentGraph`](@ref))"
+    seg_id::Int
+    "`true` if this edge has already been considered for a bike path addition/removal, `false` otherwise"
+    edited::Bool
 end
 
-
-function Graph()
-    return Graph{Int}()
+"""
+Connected run of edges which are supposed to be built together.
+"""
+struct Segment
+    "unique id of the segment"
+    id::Int
+    "cost of building this segment"
+    cost::Float64
+    "physical length of the segment in meters"
+    length::Float64
+    "edges which are part of the segment"
+    edges::Vector{Tuple{Int,Int}}
 end
 
-"""
-    add_node!(G, u, size)
-
-Add node u to graph G.
-"""
-function add_node!(G::Graph{T}, u::T, d) where T
-    G.nodes[u] = Node{T}(u, 
-    d["intersection_size"],
-    d["intersection_penalty"],
-    )
-end
-
-
-"""
-    remove_node!(G, u)
-
-Remove node u from graph G.
-"""
-function remove_node!(G::Graph{T}, u::T) where T
-    for v in get!(G.adjacency_lists, u, Set{T}())
-        remove_edge!(G, u, v)
-        if u in G.adjacency_lists[v]
-            remove_edge!(G, v, u)
-        end
-    end
-    delete!(G.nodes, u)
-end
-
-
-"""
-    get_adjacent_nodes(G, u)
-
-Return a set of adjacent nodes to u in graph G.
-"""
-function get_adjacent_nodes(G::Graph{T}, u::T)::Set{T} where T
-    return get(G.adjacency_lists, u, Set{T}())
-end
-
-
-"""
-    get_intersection_penalty(G, u; cyclist_type=1)
-
-Get intersection penalty based on cyclist_type of edge (u, v) in graph G.
-"""
-function get_intersection_penalty(G::Graph{T}, u::T; cyclist_type=1::Int) where T
-    return G.nodes[u].intersection_penalty[cyclist_type]
-end
-
-
-"""
-    add_edge!(G, u, v, d; u_size, v_size)
-
-Add edge (u, v) with data d to graph G.
-"""
-function add_edge!(G::Graph{T}, u::T, v::T, d, u_info=Dict(), v_info=Dict()) where T
-    if !(haskey(G.nodes, u))
-        add_node!(G, u, u_info)
-    end
-    if !(haskey(G.nodes, v))
-        add_node!(G, v, v_info)
-    end
-    if !(haskey(G.adjacency_lists, u))
-        G.adjacency_lists[u] = Set()
-    end
-    push!(G.adjacency_lists[u], v)
-    G.edges[(u,v)] = Edge{T}(u, v, 
-        d["real_length"],
-        d["real_length"],
-        d["speed"],
-        d["street_type"],
-        d["car_penalty"],
-        d["slope"],
-        d["slope_penalty"],
-        d["surface"],
-        d["surface_penalty"],
-        d["turn_penalty"],
-        d["bp_end_penalty"],
-        d["ex_inf"],
-        d["blocked"],
-        d["bike_path"],
-        d["cost"],
-        d["load"],
-        d["trips"],
-        d["edited"]
-        )
-end
-
-
-"""
-    remove_edge!(G, u, v)
-
-Remove edge (u, v) from graph G.
-"""
-function remove_edge!(G::Graph{T}, u::T, v::T) where T
-    delete!(G.edges, (u, v))
-    delete!(G.adjacency_lists[u], v)
-end
-
-
-"""
-    get_edge_weight(G, u, v)
-
-Return edge (u, v) weight from graph G.
-"""
-function get_edge_weight(G::Graph{T}, u::T, v::T)::Float64 where T
-    return G.edges[(u, v)].weight
-end
-
-
-"""
-    set_edge_weight!(G, u, v)
-
-Set weight of edge (u, v) in graph G.
-"""
-function set_edge_weight!(G::Graph{T}, u::T, v::T, w::Float64) where T
-    G.edges[(u, v)].weight = w
-end
-
-
-"""
-    get_edge_speed(G, u, v)
-
-Return speed based on cyclist_type of edge (u, v) from graph G.
-"""
-function get_edge_speed(G::Graph{T}, u::T, v::T; cyclist_type::Int=1)::Float64 where T
-    return G.edges[(u, v)].speed[cyclist_type]
-end
-
-
-"""
-    set_car_penalty!(G, u, v, p)
-
-Set slope penalty p to edge (u, v) in graph G.
-"""
-function set_car_penalty!(G::Graph{T}, u::T, v::T, p::Vector{Float64}) where T
-    G.edges[(u, v)].car_penalty = p
-end
-
-
-"""
-    get_car_penalty(G, u, v; check_bp=false, cyclist_type=1)
-
-Get car penalty based on cyclist_type of edge (u, v) in graph G.
-"""
-function get_car_penalty(G::Graph{T}, u::T, v::T; check_bp=false::Bool, cyclist_type::Int=1)::Float64 where T
-    if (check_bp && G.edges[(u, v)].bike_path)
-        return 1.0
-    else
-        return G.edges[(u, v)].car_penalty[cyclist_type]
+function Base.show(io::IO, ::MIME"text/plain", thing::T) where {T<:Union{Node,Edge,Segment}}
+    println(io, T)
+    for field in fieldnames(T)
+        println(io, "  ", field, ": ", getfield(thing, field))
     end
 end
 
-
+##### Simple graph #######
 """
-    set_slope_penalty!(G, u, v, p)
-
-Set slope penalty p to edge (u, v) in graph G.
+Graph representing a simple street network.
 """
-function set_slope_penalty!(G::Graph{T}, u::T, v::T, p::Vector{Float64}) where T
-    G.edges[(u, v)].slope_penalty = p
+struct Graph <: AbstractGraph
+    "intersections of network"
+    nodes::Dict{Int,Node}
+    "outbound (directed) adjacency between nodes"
+    adjacency_lists::Dict{Int,Set{Int}}
+    "streets (edges) between the intersections (nodes)"
+    edges::Dict{Tuple{Int,Int},Edge}
 end
 
+"Empty constructor for a [`Graph`](@ref)."
+Graph() = Graph(Dict(), Dict(), Dict())
 
-"""
-    get_slope_penalty(G}, u, v; cyclist_type=1)  
+nv(g::Graph) = length(g.nodes)
+ne(g::Graph) = length(g.edges)
+nodes(g::Graph) = g.nodes
+edges(g::Graph) = g.edges
 
-Get slope penalty based on cyclist_type of edge (u, v) in graph G.
+neighbours(g::Graph, node) = g.adjacency_lists[node]
+
+##### Segment graph #######
 """
-function get_slope_penalty(G::Graph{T}, u::T, v::T; cyclist_type::Int=1)::Float64 where T
-    return G.edges[(u, v)].slope_penalty[cyclist_type]
+Graph representing a simple street network with segments which are beeing built/removed together.
+"""
+struct SegmentGraph <: AbstractGraph
+    "holding the underlying graph structure"
+    graph::Graph
+    "segments of the network indexed by their id"
+    segments::Dict{Int,Segment}
 end
+"Empty constructor for a [`SegmentGraph`](@ref)."
+SegmentGraph() = SegmentGraph(Graph(), Dict())
 
+nv(g::SegmentGraph) = nv(g.graph)
+ne(g::SegmentGraph) = ne(g.graph)
+nodes(g::SegmentGraph) = nodes(g.graph)
+edges(g::SegmentGraph) = edges(g.graph)
 
+neighbours(g::SegmentGraph, node) = neighbours(g.graph, node)
 
+##### Spatial graph #######
 """
-    set_turn_penalty!(G, u, v, p)
-
-Set turn penalty p to edge (u, v) in graph G.
+Graph representing a street network with spatial information about the nodes and edges,
+useful for visualization.
 """
-function set_turn_penalty!(G::Graph{T}, u::T, v::T, p::Dict{T, Vector{Float64}}) where T
-    G.edges[(u, v)].turn_penalty = p
+struct SpatialGraph{G<:AbstractGraph}
+    "underlying graph structure"
+    graph::G
+    "coordinates of nodes indexed by node id"
+    node_geometry::Dict{Int,Any}
+    "coordinates of edge-geometry indexed by source and destination node id"
+    edge_geometry::Dict{Tuple{Int,Int},Any}
 end
-
-
 """
-    get_turn_penalty(G, u, v, n; cyclist_type=1)
-
-Return turn penalty p based on cyclist_type of edge (u, v) coming from node n in graph G.
+    SpatialGraph{G<:BikePathNet.AbstractGraph}()
+Empty constructor for a [`SpatialGraph`](@ref).
 """
-function get_turn_penalty(G::Graph{T}, u::T, v::T, n::T; cyclist_type::Int=1)::Float64 where T
-    return get(G.edges[(u, v)].turn_penalty, n, zeros(cyclist_type))[cyclist_type]
-end
+SpatialGraph{T}() where {T<:AbstractGraph} = SpatialGraph(T(), Dict{Int,Any}(), Dict{Tuple{Int,Int},Any}())
 
+nv(g::SpatialGraph) = nv(g.graph)
+ne(g::SpatialGraph) = ne(g.graph)
 
-"""
-    get_bp_end_penalty(G::Graph{T}, u::T, v::T, on_bike_path::Bool, bike_path_ends::Int; max_end_counter::Int=3, cyclist_type=1)
-
-Return bike path end penalty based on cyclist_type for edge (u, v) coming from node n in graph G.
-"""
-function get_bp_end_penalty(G::Graph{T}, u::T, v::T, on_bike_path::Bool, bike_path_ends::Int; max_end_counter::Int=3, cyclist_type::Int=1)::Float64 where T
-    if (!G.edges[(u, v)].bike_path && on_bike_path)
-        return get(G.edges[(u, v)].bp_end_penalty, min(bike_path_ends, max_end_counter), ones(cyclist_type))[cyclist_type]
-    else
-        return 0.0
-    end
+function Base.show(io::IO, ::MIME"text/plain", g::T) where {T<:Union{Graph,SegmentGraph,SpatialGraph}}
+    println(io, T, " with ", nv(g), " nodes and ", ne(g), " edges.")
 end
