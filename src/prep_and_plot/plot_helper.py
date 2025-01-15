@@ -13,8 +13,7 @@ import shapely.ops as ops
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from ast import literal_eval
-from collections.abc import Iterable
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from functools import partial
 from math import ceil, floor, log10
 from matplotlib.axes._axes import Axes

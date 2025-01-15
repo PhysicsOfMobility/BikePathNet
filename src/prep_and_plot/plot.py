@@ -4,8 +4,7 @@ This module includes all necessary functions for the plotting functionality.
 
 import math
 from copy import deepcopy
-from os.path import join
-from scipy import interpolate, optimize
+
 from matplotlib import colormaps
 from matplotlib.colors import rgb2hex, LogNorm
 from matplotlib.lines import Line2D
@@ -15,6 +14,8 @@ from mpl_toolkits.axes_grid1.inset_locator import (
     mark_inset,
     inset_axes,
 )
+from os.path import join
+from scipy import interpolate, optimize
 from .data_helper import (
     get_polygon_from_json,
     load_demand,
@@ -42,7 +43,7 @@ def plot_ba_cost(
     y_max: float = 1.0,
     params: dict | None = None,
 ):
-    """
+    """Plot bikeability and cost for algorithm and comparison point(s).
 
     Parameters
     ----------
@@ -1645,7 +1646,6 @@ def plot_mode(
     data_opt: dict,
     data_ex_inf: dict,
     G: nx.MultiGraph | nx.MultiDiGraph,
-    stations: list,
     mode: tuple[bool, int, bool],
     end_plot: int,
     evaluation_data: dict,
@@ -1675,8 +1675,6 @@ def plot_mode(
         Results for just existing infrastructure
     G : nx.MultiGraph | nx.MultiDiGraph
         Street network
-    stations : list
-        Station nodes
     mode : tuple[bool, int, bool]
         Mode of the complete run (buildup, minmode, ex inf)
     end_plot : int
@@ -2271,7 +2269,6 @@ def plot_city(
             data_opt=data_opt,
             data_ex_inf=data_ex_inf,
             G=G,
-            stations=stations,
             mode=m,
             end_plot=end_plot,
             evo=evo,

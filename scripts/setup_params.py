@@ -3,45 +3,13 @@ import numpy as np
 params = {}
 params["cyclist_types"] = 1
 params["cyclist_split"] = {1: 1}
-params["speeds"] = [1]
-params["car_penalty"] = {
-    "primary": [1 / 7],
-    "secondary": [1 / 2.4],
-    "tertiary": [1 / 1.4],
-    "residential": [1 / 1.1],
-}
-params["slope_penalty"] = {0.06: [1.0], 0.04: [1.0], 0.02: [1.0], 0.00: [1.0]}
-params["surface_penalty"] = {
-    "asphalt": [1.0],
-    "gravel": [1.0],
-    "cobbel": [1.0],
-}
-params["turn_penalty"] = {
-    "large": [0.0],
-    "medium": [0.0],
-    "small": [0.0],
-}
-params["intersection_penalty"] = {
-    "large": [0.0],
-    "medium": [0.0],
-    "small": [0.0],
-}
-params["bp_end_penalty"] = {
-    "primary": {1: [0.0], 2: [0.0], 3: [0.0]},
-    "secondary": {1: [0.0], 2: [0.0], 3: [0.0]},
-    "tertiary": {1: [0.0], 2: [0.0], 3: [0.0]},
-    "residential": {1: [0.0], 2: [0.0], 3: [0.0]},
-}
-
+params["bike_highways"] = False
 params["modes"] = [(1, False, 1)]  # Modes used for algorithm and plotting
 params["save_edge_load"] = False
 params["cut"] = True  # If results should be normalised to first removal
 params["bike_paths"] = []  # Additional ike Paths for current state
 params["use_exinf"] = False
 params["ex inf"] = ["track", "lane"]  # Ex bp which should not be removed
-
-params["prerun_comp_states"] = False  # Creat json for comp states
-params["cached_comp_state"] = False  # Use existing comp state data if True
 
 params["correct_area"] = True  # Correction of the area size
 

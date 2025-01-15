@@ -1,33 +1,27 @@
-import warnings
 import sys
-
-sys.path.append("..")
-
 from os.path import join
-from src.data import prep_city
-from setup_params import params
 from setup_paths import paths
+from setup_params import params
+sys.path.append(paths["project_dir"])
+from src.prep_and_plot import prep_city
 
-warnings.filterwarnings("ignore")
 
 city_name = "Hamburg"
-save = "hh"
+city_save = "hh"
 
-input_csv = join(paths["project_dir"], "data", "csvs", "hh_cleaned.csv")
+input_csv = join(paths["data_dir"], "csvs", "hh_cleaned.csv")
 
-# How the different cyclists types are split. Standard: one type, therefore 100% of the trips fall on that type.
-# Multiple cyclist types e.g. {1: 0.25, 2: 0.5, 3: 0.25}
-params["cyclist_split"] = {1: 1.0}
+params["stat_usage_norm"] = 881 / 365
 
 prep_city(
     city_name,
-    save,
+    city_save,
     input_csv,
     trunk=False,
     consolidate=True,
-    tol=35,
-    by_bbox=False,
-    by_city=False,
+    tol=10,
+    by_bbox=True,
+    by_city=True,
     by_polygon=True,
     paths=paths,
     params=params,
