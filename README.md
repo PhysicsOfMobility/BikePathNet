@@ -1,7 +1,7 @@
 # BikePathNet
 
 This project is designed to help to improve the bikeability of cities. 
-Therefore, it combines a route choice model for the cyclists, based on street size and presence or absence of bike paths along streets, OpenStreetMap data and the cyclists demand.
+Therefore, it combines a route choice model for the cyclists, based on topography, street/intersection size and presence or absence of bike paths along streets, OpenStreetMap data and the cyclists demand.
 
 ## Setup
 The setup is written for Linux/macOS systems. For Windows systems some commands might be slightly different, but the general setup structure stays the same.
@@ -15,8 +15,8 @@ You need Python in version 3.12 and Julia in version 1.10 installed.
 2. Install julia packages via the julia REPL (in Julia REPL press <kbd>]</kbd>)
    ```julia
    pkg> add DrWatson
-   pkg> activate("path/to/this/project")
-   pkg> instantiate()
+   pkg> activate path/to/this/project
+   pkg> instantiate
    ```
 3. Optional: If you want to include elevation/slope data for the algorithm you need to download world elevation data provided by the [NASA Shuttle Radar Topography Mission (SRTM)](https://www2.jpl.nasa.gov/srtm/). This project only utilises the more precise 1 arc-seconds (30 meters) data. After downloading the data add the location to the environment variables.
    ```bash
@@ -29,16 +29,16 @@ You need Python in version 3.12 and Julia in version 1.10 installed.
 All commands assume you are in the project folder.
 1. Prepare data for algorithm with given street networks.
    ```bash
-   python3 examples/hh_prep.py
+   python3 scripts/hh_prep.py
    ```
    It will take only a couple of seconds.
 2. Run the simulations.
    ```bash
-   julia examples/hh_algorithm.jl
+   julia scripts/hh_run.jl
    ```
    If you want to make use of parallelizing parts of the calculations, specify the number of threads (e.g. 8) available to julia.
    ```bash
-   julia --threads 8 examples/hh_algorithm.jl
+   julia --threads 8 scripts/hh_run.jl
    ```
    The calculations take 5-15 minutes depending on the given number of CPU cores and their speed. 
 3. Now the figures can be generated, some additional information will be printed in the commandline.
@@ -58,9 +58,10 @@ which auto-activate the project and enable local path handling from [DrWatson](h
 
 ### Software Versions Used
 1. Python 3.12
-2. Julia 1.10.3
-3. Python packages: See requirements.txt
-4. PROJ 8.1.1
+2. Julia 1.10.0
+3. Python packages and dependencies: See python_package_versions.txt
+4. Julia packages and dependencies: See Mainfest.toml
+5. PROJ 8.1.1
 
 
 ## Data Licenses
