@@ -57,11 +57,10 @@ which auto-activate the project and enable local path handling from [DrWatson](h
 
 
 ### Software Versions Used
-1. Python 3.12
+1. Python 3.12.3
 2. Julia 1.10.0
-3. Python packages and dependencies: See python_package_versions.txt
+3. Python packages and dependencies: See requirements.txt
 4. Julia packages and dependencies: See Mainfest.toml
-5. PROJ 8.1.1
 
 
 ## Data Licenses
