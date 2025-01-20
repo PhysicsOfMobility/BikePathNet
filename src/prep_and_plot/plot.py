@@ -863,7 +863,7 @@ def plot_edge_load(
     ex_inf: bool,
     data_set: str,
     plot_folder: str,
-    edge_color: str | Iterable[str] = "#999999",
+    edge_color: str | Iterable[str] | None = None,
     edge_width: float | Sequence[float] = 1,
     edge_alpha: float | None = None,
     edge_zorder: int | Iterable[int] = 1,
