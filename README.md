@@ -47,6 +47,8 @@ All commands assume you are in the project folder.
    ```
    The plots will be saved in the `examples/plots/` folder. Should take less than 5 minutes for all plots.
 
+The notebooks for Copenhagen cannot be executed as most of the data is not publicly accessible. 
+
 ### DrWatson
 You may notice that the julia script start with the commands:
 ```julia
