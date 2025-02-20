@@ -747,7 +747,7 @@ def plot_used_nodes(
     if params is None:
         params = create_default_params()
 
-    node_load = {n: 0 for n in G.nodes()}
+    node_load = {n: 0.0 for n in G.nodes()}
     for s_node in G.nodes():
         for e_node in G.nodes():
             if e_node == s_node:
@@ -756,12 +756,12 @@ def plot_used_nodes(
                 node_load[s_node] += sum(trip_nbrs[(s_node, e_node)].values())
                 node_load[e_node] += sum(trip_nbrs[(s_node, e_node)].values())
 
-    node_load = {n: int(t / params["stat_usage_norm"]) for n, t in node_load.items()}
+    node_load = {n: t / params["stat_usage_norm"] for n, t in node_load.items()}
 
-    max_load = max(node_load.values())  # 191821
-    print(f"Maximal station usage: {max_load}")
+    max_load = max(node_load.values())
+    print(f"Maximal station usage: {max_load:3.2f}")
     min_load = min([load for n, load in node_load.items() if n in stations])
-    print(f"Minimal station usage: {min_load}")
+    print(f"Minimal station usage: {min_load:3.2f}")
 
     r = magnitude(max_load)
 

@@ -323,13 +323,11 @@ def load_trips(G, path_to_trips, polygon=None, delim=","):
     trip_nbrs = {}
     for trip in range(len(nbr_of_trips)):
         if (int(start_nodes[trip]), int(end_nodes[trip])) in trip_nbrs.keys():
-            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] += int(
-                nbr_of_trips[trip]
-            )
+            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] += (
+                nbr_of_trips)[trip]
         else:
-            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = int(
-                nbr_of_trips[trip]
-            )
+            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = (
+                nbr_of_trips)[trip]
 
     stations = set()
     for k, v in trip_nbrs.items():

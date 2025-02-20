@@ -130,8 +130,8 @@ def prep_city(
             trips_b, cyclist_split=params["cyclist_split"]
         )
         print(
-            f"Number of Stations: {len(stations_b)}, "
-            f"Number of trips: {sum([sum(t_b.values()) for t_b in trips_b.values()])} "
+            f"Number of stations: {len(stations_b)}, "
+            f"Number of trips: {sum([sum(t_b.values()) for t_b in trips_b.values()]):3.2f}, "
             f"Unique trips: {sum([len(t_b.keys()) for t_b in trips_b.values()])} "
         )
 
@@ -190,8 +190,8 @@ def prep_city(
             trips_c, cyclist_split=params["cyclist_split"]
         )
         print(
-            f"Number of Stations: {len(stations_c)}, "
-            f"Number of trips: {sum([sum(t_c.values()) for t_c in trips_c.values()])} "
+            f"Number of stations: {len(stations_c)}, "
+            f"Number of trips: {sum([sum(t_c.values()) for t_c in trips_c.values()]):3.2f} "
             f"Unique trips: {sum([len(t_c.keys()) for t_c in trips_c.values()])} "
         )
 
@@ -249,8 +249,8 @@ def prep_city(
         trips, stations = load_trips(G, input_csv, polygon=polygon)
         trips = trip_cyclist_type_split(trips, cyclist_split=params["cyclist_split"])
         print(
-            f"Number of Stations: {len(stations)}, "
-            f"Number of trips: {sum([sum(t.values()) for t in trips.values()])}, "
+            f"Number of stations: {len(stations)}, "
+            f"Number of trips: {sum([sum(t.values()) for t in trips.values()]):3.2f}, "
             f"Unique trips: {sum([len(t.keys()) for t in trips.values()])}"
         )
 
