@@ -10,13 +10,13 @@ city_name = "Hamburg"
 city_save = "hh"
 
 input_csv = join(paths["data_dir"], "csvs", "hh_cleaned.csv")
-
-params["stat_usage_norm"] = 881 / 365
+polygon_file = join(paths["data_dir"], "polygons", "hh.json")
 
 prep_city(
     city_name,
     city_save,
     input_csv,
+    polygon_file,
     trunk=False,
     consolidate=True,
     tol=10,
