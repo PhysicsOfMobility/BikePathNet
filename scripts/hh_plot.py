@@ -12,8 +12,6 @@ paths["polygon_file"] = join(paths["polygon_folder"], f"{city_save}.json")
 paths["graph_file"] = join(paths["input_folder"], city_save, f"{city_save}.graphml")
 paths["demand_file"] = join(paths["input_folder"], city_save, f"{city_save}_demand.json")
 
-params["stat_usage_norm"] = 881 / 365
-
 params["plot_evo"] = False
 params["evo_for"] = [(False, 1, False)]
 
