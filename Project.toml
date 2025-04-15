@@ -1,6 +1,6 @@
 name = "BikePathNet"
 uuid = "651a3fd7-49cb-4692-89d4-bec70e67c00f"
-authors = ["Christoph Steinacker"]
+authors = ["Christoph Steinacker", "Henrik Wolf"]
 version = "0.1.0"
 
 [deps]
