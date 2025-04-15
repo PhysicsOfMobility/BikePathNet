@@ -118,7 +118,7 @@ the bike paths are ignored.
 function calculate_optimal_comparison_state(experiment_file::String)
     experiment_config, _ = load_comparison_params(experiment_file)
 
-    if !isnothing(log_file(experiment_config))  # TODO: should we handle this within setup_logger?
+    if !isnothing(log_file(experiment_config))
         mkpath(dirname(log_file(experiment_config)))
         setup_logger(log_file(experiment_config))
     else

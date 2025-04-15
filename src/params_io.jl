@@ -1,20 +1,3 @@
-# TODO: this can probably be deleted, now that we have the Experiment API
-function save_run_params(file, algorithm_config, cyclists)
-    # TODO: should we add input and output directories?
-    # TODO: should we add the graph type?
-    data = @ntuple algorithm_config cyclists
-    open(file, "w") do io
-        print(io, to_pretty_json(data))
-    end
-end
-
-function load_run_params(file)
-    data = JSON.parsefile(file)
-    algorithm_config = Serde.deser(AlgorithmConfig, data["algorithm_config"])
-    cyclists = Serde.deser(Vector{Cyclist}, data["cyclists"])
-    return algorithm_config, cyclists
-end
-
 """
 Save an [`Experiment`](@ref) and a list of edge `bike_paths` which should have
 bike paths on then to a `json` file at `file`.

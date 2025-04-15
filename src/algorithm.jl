@@ -191,8 +191,6 @@ end
 Aggregate the current state of the algorithm into the [`result::CoreAlgorithmResult`](@ref CoreAlgorithmResult).
 """
 function aggregate_result!(result::CoreAlgorithmResult, g, shortest_path_states, iteration)
-    # TODO: figure out where/when to set the cost
-
     result.bike_path_percentage[iteration] = bike_path_percentage(g)
     aggregate_result!(result.total_real_distances_traveled, shortest_path_states, iteration)
 
@@ -207,7 +205,6 @@ Set all relevant values in [`result::CoreAlgorithmResult`](@ref CoreAlgorithmRes
 first encounters a used edge or segment.
 """
 function handle_first_used!(result, g, min_loaded_element, algorithm_config)
-    # TODO: this seems weird... (formally: get_used_primary_secondary_edges(g))
     for (k, e) in edges(g)
         if algorithm_config.use_bike_highways
             !e.bike_highway && push!(result.used_primary_secondary_edges, k)
@@ -223,7 +220,6 @@ function handle_first_used!(result, g, min_loaded_element, algorithm_config)
         push!(result.unused_edges, e)
     end
     cut = ne(g) - length(result.unused_edges)
-    # TODO: we need mutability of the result for this...
     result.cut = cut
     @info "First used bike path (id: $(to_gains_key(min_loaded_element))) after $(length(result.unused_edges)) iterations."
 end
@@ -247,12 +243,10 @@ function log_progress(bike_path_percentage, next_log, buildup, start_time)
     if buildup && bike_path_percentage > next_log
         timedelta = canonicalize(round(now() - start_time, Dates.Second(1)))
         @info "Reached $next_log BPP (buildup) after $(timedelta)"
-        # @sync GC.gc()
         return true
     elseif !buildup && bike_path_percentage < next_log
         timedelta = canonicalize(round(now() - start_time, Dates.Second(1)))
         @info "Reached $next_log BPP (removing) after $(timedelta)"
-        # @sync GC.gc()
         return true
     else
         return false
@@ -339,7 +333,6 @@ function core_algorithm(g, trips, algorithm_config; start_time=now())
             push!(result.edited_segments, current_edge.seg_id)
 
             if !current_edge.ex_inf
-                # TODO: if undirected, should this sometimes be doubled?
                 result.total_cost[current_iteration] = current_edge.cost
                 edit_edge!(current_edge)
                 if algorithm_config.undirected
@@ -448,7 +441,7 @@ function run_simulation(experiment_file)
         mkpath(dirname(log_file(experiment_config)))
         setup_logger(log_file(experiment_config), experiment_config.save)
     else
-        setup_logger(experiment_config.save)  # TODO: this is strange...
+        setup_logger(experiment_config.save)
     end
 
     mode = "$(algorithm_config.buildup ? "buildup" : "teardown"), $(split(string(typeof(algorithm_config.minmode)), '.')[end]) and $(algorithm_config.use_existing_infrastructure ? "with existing infrastructure" : "without existing infrastructure")"

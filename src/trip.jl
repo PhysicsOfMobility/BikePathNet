@@ -23,7 +23,7 @@ trip_consumer_surplus(trip::Trip, shortest_path_state) = trip.number_of_users * 
 A trip from `origin` to `destination`, taken by at least `number_of_users` cyclists with a profile
 specified by a [`Cyclist`](@ref). The actual number of users changes, depending on
 the current felt length of the trip compared to the felt length of the trip in the state without bike paths.
-(see TODO: add reference to paper once published).
+(see M. Paulsen and J. Rich, Transp. Res. B 190, 103095 (2024).)
 """
 struct VariableTrip
     "`id` of origin [`Node`](@ref)"
@@ -40,9 +40,9 @@ struct VariableTrip
     d_0::Float64
     "marginal utility of travel time for bikes"
     beta::Float64
-    "probability (TODO: not really a probability...) of taking the trip by bike given no bike paths"
+    "probability of taking the trip by bike given no bike paths"
     p_bike_0::Float64
-    "probability (TODO: not really a probability...) of taking the trip by any other mode than by bike"
+    "probability of taking the trip by any other mode than by bike"
     p_other::Float64
     "value of time (price per unit time)"
     vot::Float64

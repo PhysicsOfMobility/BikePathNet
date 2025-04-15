@@ -57,10 +57,9 @@ minimal_loaded_element(g::SegmentGraph, minstate, algorithm_config) = minimal_lo
 Returns the [`MinLoadedSegment`](@ref) of the [`SegmentGraph`](@ref) `g` which should be edited next according to the `algorithm_config`.
 """
 function minimal_loaded_segment(g::SegmentGraph, minstate, algorithm_config)
-    # TODO: not super sure how this interacts with blocked streets and existing infrastructure...
     segment_loads = Dict{Int,Float64}()
     for (k, e) in edges(g)
-        (e.edited || e.blocked) && continue  # TODO: after running prepare_graph! all blocked edges are already edited...
+        (e.edited || e.blocked) && continue
         if haskey(segment_loads, e.seg_id)
             segment_loads[e.seg_id] += _edge_load(e, g.segments[e.seg_id], minstate)
         else

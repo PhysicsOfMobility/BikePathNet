@@ -13,11 +13,11 @@ This type collects all the configuration-options for the main algorithm
     "Additional blocked streets."
     add_blocked_streets::Vector{Tuple{Int, Int}}
     "`true` if bike highways should be used, `false` otherwise."
-    use_bike_highways::Bool  # TODO: what was this for?
+    use_bike_highways::Bool
     "`true` if edge loads should be saved in the result of the algorithm, `false` otherwise."
     save_edge_loads::Bool
     "`true` if the graph should be treated as undirected, `false` if it should be kept directed."
-    undirected::Bool  # TODO: is this really implemented?
+    undirected::Bool
     "mode by which the algorithm chooses to find the next edge to add/remove (see [`AbstractMinmode`](@ref))."
     minmode::T
     "marginal utility of travel time for bikes which is used with [`VariableTrip`](@ref)"
