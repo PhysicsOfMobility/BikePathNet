@@ -234,9 +234,7 @@ def get_lat_long_trips(
             axis=1,
         )
         trips["end in polygon"] = trips[["end latitude", "end longitude"]].apply(
-            lambda row: polygon.intersects(
-                Point(row["end longitude"], row["end latitude"])
-            ),
+            lambda row: polygon.intersects(Point(row["end longitude"], row["end latitude"])),
             axis=1,
         )
         trips["in polygon"] = trips[["start in polygon", "end in polygon"]].apply(
@@ -323,11 +321,9 @@ def load_trips(G, path_to_trips, polygon=None, delim=","):
     trip_nbrs = {}
     for trip in range(len(nbr_of_trips)):
         if (int(start_nodes[trip]), int(end_nodes[trip])) in trip_nbrs.keys():
-            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] += (
-                nbr_of_trips)[trip]
+            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] += nbr_of_trips[trip]
         else:
-            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = (
-                nbr_of_trips)[trip]
+            trip_nbrs[(int(start_nodes[trip]), int(end_nodes[trip]))] = nbr_of_trips[trip]
 
     stations = set()
     for k, v in trip_nbrs.items():
@@ -556,9 +552,7 @@ def consolidate_nodes(
     return G
 
 
-def get_traffic_signal_nodes(
-    G: nx.MultiGraph | nx.MultiDiGraph, tol: float = 10
-) -> set[int]:
+def get_traffic_signal_nodes(G: nx.MultiGraph | nx.MultiDiGraph, tol: float = 10) -> set[int]:
     """Returns a list with all nodes which have a traffic signal at the intersection
     with max. size 'tol'.
 
@@ -807,9 +801,7 @@ def prepare_downloaded_map(
     # Check where bike paths/lanes already exist
     print("Check for existing infrastructure.")
     for u, v, k, d in G.edges(keys=True, data=True):
-        if "cycleway" in d.keys() and check_existing_infrastructure(
-            d["cycleway"], ex_inf
-        ):
+        if "cycleway" in d.keys() and check_existing_infrastructure(d["cycleway"], ex_inf):
             d["ex_inf"] = True
         elif "cycleway:right" in d.keys() and check_existing_infrastructure(
             d["cycleway:right"], ex_inf
@@ -821,22 +813,14 @@ def prepare_downloaded_map(
             d["ex_inf"] = True
         elif "bicycle" in d.keys() and d["bicycle"] == "use_sidepath":
             d["ex_inf"] = True
-        elif (
-            "sidewalk:both:bicycle" in d.keys() and d["sidewalk:both:bicycle"] == "yes"
-        ):
+        elif "sidewalk:both:bicycle" in d.keys() and d["sidewalk:both:bicycle"] == "yes":
+            d["ex_inf"] = True
+        elif "sidewalk:right:bicycle" in d.keys() and d["sidewalk:right:bicycle"] == "yes":
+            d["ex_inf"] = True
+        elif "sidewalk:left:bicycle" in d.keys() and d["sidewalk:left:bicycle"] == "yes":
             d["ex_inf"] = True
         elif (
-            "sidewalk:right:bicycle" in d.keys()
-            and d["sidewalk:right:bicycle"] == "yes"
-        ):
-            d["ex_inf"] = True
-        elif (
-            "sidewalk:left:bicycle" in d.keys() and d["sidewalk:left:bicycle"] == "yes"
-        ):
-            d["ex_inf"] = True
-        elif (
-            "cycleway:both:bicycle" in d.keys()
-            and d["cycleway:both:bicycle"] == "designated"
+            "cycleway:both:bicycle" in d.keys() and d["cycleway:both:bicycle"] == "designated"
         ):
             d["ex_inf"] = True
         elif (
@@ -845,8 +829,7 @@ def prepare_downloaded_map(
         ):
             d["ex_inf"] = True
         elif (
-            "cycleway:left:bicycle" in d.keys()
-            and d["cycleway:left:bicycle"] == "designated"
+            "cycleway:left:bicycle" in d.keys() and d["cycleway:left:bicycle"] == "designated"
         ):
             d["ex_inf"] = True
         else:
@@ -1022,7 +1005,7 @@ def download_map_by_bbox(
 def download_map_by_name(
     city: str,
     nominatim_result: int = 1,
-    network_type="drive",
+    network_type: str = "drive",
     trunk: bool = False,
     consolidate: bool = False,
     tol: float = 35,
@@ -1096,13 +1079,13 @@ def download_map_by_name(
 
 
 def download_map_by_polygon(
-    polygon,
-    network_type="drive",
-    trunk=False,
-    consolidate=False,
-    tol=35,
-    truncate_by_edge=False,
-    params=None,
+    polygon: Polygon,
+    network_type: str="drive",
+    trunk: bool = False,
+    consolidate: bool = False,
+    tol: float = 35,
+    truncate_by_edge: bool = False,
+    params: dict | None = None,
 ) -> nx.MultiDiGraph:
     """Downloads a drive graph from osm given by the polygon and cleans it for
     usage.

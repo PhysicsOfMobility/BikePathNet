@@ -1,4 +1,5 @@
 from os.path import dirname, abspath, basename, join
+
 project_dir = abspath(__file__)
 while basename(project_dir) != "BikePathNet":
     project_dir = dirname(project_dir)

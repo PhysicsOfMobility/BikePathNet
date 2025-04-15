@@ -205,9 +205,7 @@ def plot_ba_cost(
             bpp_idx = next(x for x, val in enumerate(bpp) if val == bpp_x)
             cost_y = cost[bpp_idx]
 
-            xmin, ymax = coord_transf(
-                bpp_comp, cost_comp, xmax=1, xmin=0, ymax=1, ymin=0
-            )
+            xmin, ymax = coord_transf(bpp_comp, cost_comp, xmax=1, xmin=0, ymax=1, ymin=0)
 
             if len(bpp_vlines) != 0:
                 bpp_comp_close = min(bpp_vlines.keys(), key=lambda x: abs(x - bpp_comp))
@@ -219,15 +217,11 @@ def plot_ba_cost(
                 bpp_vlines[bpp_comp] = ymax
 
             if len(cost_hlines) != 0:
-                cost_comp_close = min(
-                    cost_hlines.keys(), key=lambda x: abs(x - cost_comp)
-                )
+                cost_comp_close = min(cost_hlines.keys(), key=lambda x: abs(x - cost_comp))
                 if abs(cost_comp - cost_comp_close) > 0.001:
                     cost_hlines[cost_comp] = xmin
                 else:
-                    cost_hlines[cost_comp_close] = min(
-                        cost_hlines[cost_comp_close], xmin
-                    )
+                    cost_hlines[cost_comp_close] = min(cost_hlines[cost_comp_close], xmin)
             else:
                 cost_hlines[cost_comp] = xmin
             cost_y_close = min(cost_hlines.keys(), key=lambda x: abs(x - cost_y))
@@ -257,12 +251,8 @@ def plot_ba_cost(
                 lw=params["lw_cost"],
             )
 
-        ax2.set_ylabel(
-            "normalized cost", fontsize=params["fs_axl"], color=params["c_cost"]
-        )
-        ax2.tick_params(
-            axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_cost"]
-        )
+        ax2.set_ylabel("normalized cost", fontsize=params["fs_axl"], color=params["c_cost"])
+        ax2.tick_params(axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_cost"])
 
         if y_max - y_min < 2.0:
             ax2.yaxis.set_minor_locator(AutoMinorLocator())
@@ -312,22 +302,14 @@ def plot_ba_cost(
         xmax, ymax = coord_transf(
             bpp_comp, max([ba_y, ba_comp]), xmin=x1, xmax=x2, ymin=y1, ymax=y2
         )
-        ax1ins.axvline(
-            x=bpp_comp, ymax=ymax, ymin=0, c=params["c_ba"], ls="--", alpha=0.5
-        )
-        ax1ins.axhline(
-            y=ba_comp, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5
-        )
+        ax1ins.axvline(x=bpp_comp, ymax=ymax, ymin=0, c=params["c_ba"], ls="--", alpha=0.5)
+        ax1ins.axhline(y=ba_comp, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5)
         if abs(ba_y - ba_comp) > 0.0001:
-            ax1ins.axhline(
-                y=ba_y, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5
-            )
+            ax1ins.axhline(y=ba_y, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5)
 
         ax1ins.set_xlim(x1, x2)
         ax1ins.set_ylim(y1, y2)
-        ax1ins.tick_params(
-            axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_ba"]
-        )
+        ax1ins.tick_params(axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_ba"])
         ax1ins.tick_params(axis="x", labelsize=params["fs_ticks"])
         ax1ins.xaxis.set_major_locator(ticker.MultipleLocator(0.05))
         ax1ins.xaxis.set_minor_locator(AutoMinorLocator())
@@ -356,19 +338,13 @@ def plot_ba_cost(
         else:
             f_ba = logistic(bpp_int, *optimize.curve_fit(logistic, bpp, ba)[0])
         ax1_diff.plot(bpp_int, f_ba, color="k")
-        df_ba = np.array(
-            [(f_ba[i + 1] - f_ba[i]) / step for i in range(len(bpp_int))[:-2]]
-        )
+        df_ba = np.array([(f_ba[i + 1] - f_ba[i]) / step for i in range(len(bpp_int))[:-2]])
 
         f_cost = interpolate.interp1d(bpp, cost)
-        df_cost = np.array(
-            [(f_cost(i + step) - f_cost(i)) / step for i in bpp_int[:-2]]
-        )
+        df_cost = np.array([(f_cost(i + step) - f_cost(i)) / step for i in bpp_int[:-2]])
         ba_cost_mes = df_ba - df_cost
 
-        ax1ins_diff = inset_axes(
-            ax1_diff, width="40%", height="40%", loc=4, borderpad=0.75
-        )
+        ax1ins_diff = inset_axes(ax1_diff, width="40%", height="40%", loc=4, borderpad=0.75)
         for axis in ["top", "bottom", "left", "right"]:
             ax1ins_diff.spines[axis].set_linewidth(0.5)
         ax1ins_diff.set_xlim(0.0, 1.0)
@@ -643,9 +619,7 @@ def plot_los_nos(
         )
     ax2.yaxis.set_minor_locator(AutoMinorLocator())
     ax2.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
-    ax2.set_ylabel(
-        "cyclists on street", fontsize=params["fs_axl"], color=params["c_nos"]
-    )
+    ax2.set_ylabel("cyclists on street", fontsize=params["fs_axl"], color=params["c_nos"])
     ax2.tick_params(axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_nos"])
 
     if params["titles"]:
@@ -925,9 +899,7 @@ def plot_edge_load(
     if edge_color is None:
         edge_color = ox.plot.get_edge_colors_by_attr(G, "load", cmap="viridis")
     if edge_width is None:
-        edge_width = np.array(
-            [0 if d["load"] == 0 else 1 for u, v, d in G.edges(data=True)]
-        )
+        edge_width = np.array([0 if d["load"] == 0 else 1 for u, v, d in G.edges(data=True)])
     if edge_zorder is None:
         min_non_zero_load = min([v for v in edge_load.values() if abs(v) > 0.0])
         edge_zorder = np.array([d["load"] for u, v, d in G.edges(data=True)])
@@ -952,8 +924,7 @@ def plot_edge_load(
         for idx, leg_colors in enumerate(legend_colors):
             bbox = (idx / len(legend_colors) + 0.1, -0.05, 0.5, 1)
             leg_bars = [
-                Line2D([0], [0], color=color_i, lw=lw_leg)
-                for color_i in leg_colors.values()
+                Line2D([0], [0], color=color_i, lw=lw_leg) for color_i in leg_colors.values()
             ]
             leg_name = [name_i for name_i in legend_colors[0].keys()]
             legend = ax.legend(
@@ -989,7 +960,7 @@ def plot_edge_load(
     plt.savefig(
         join(
             plot_folder,
-            f'{save}-load-{buildup:d}{minmode}{ex_inf:d}_{data_set}.'
+            f"{save}-load-{buildup:d}{minmode}{ex_inf:d}_{data_set}."
             f'{params["plot_format"]}',
         ),
         bbox_inches="tight",
@@ -1109,9 +1080,7 @@ def plot_bp_comparison(
         params=params,
     )
 
-    print(
-        f"Difference in BPP between cs and algo: " f"{abs(bpp_cs - bpp_algo[idx]):4.3f}"
-    )
+    print(f"Difference in BPP between cs and algo: " f"{abs(bpp_cs - bpp_algo[idx]):4.3f}")
 
     ee_algo_cut = ee_algo[:idx]
     for edge in ee_algo_cut:
@@ -1433,9 +1402,7 @@ def plot_edges(
     if params["legends"]:
         leg = [
             Line2D([0], [0], color=params["color_algo"], lw=params["lw_legend_bp_evo"]),
-            Line2D(
-                [0], [0], color=params["color_ex_inf"], lw=params["lw_legend_bp_evo"]
-            ),
+            Line2D([0], [0], color=params["color_ex_inf"], lw=params["lw_legend_bp_evo"]),
         ]
         ax.legend(
             leg,
@@ -1499,9 +1466,7 @@ def plot_bp_evo(
 
     plot_folder_evo = join(plot_folder, "evolution")
     Path(plot_folder_evo).mkdir(parents=True, exist_ok=True)
-    base_save = join(
-        plot_folder_evo, f"{save}-edited-mode-{buildup:d}{minmode}{ex_inf:d}-"
-    )
+    base_save = join(plot_folder_evo, f"{save}-edited-mode-{buildup:d}{minmode}{ex_inf:d}-")
 
     if buildup:
         ee = edited_edges
@@ -1509,9 +1474,7 @@ def plot_bp_evo(
         ee = list(reversed(edited_edges))
 
     for i in evo_params["bpp_range"]:
-        idx = next(
-            x for x, val in enumerate(bpp) if val == min(bpp, key=lambda x: abs(x - i))
-        )
+        idx = next(x for x, val in enumerate(bpp) if val == min(bpp, key=lambda x: abs(x - i)))
         ee_evo = ee[:idx]
         ec_evo = get_edge_color_bp(
             G,
@@ -1596,24 +1559,19 @@ def plot_edge_load_evo(
     plots = range(0, int(max(bpp) * 100) + 1)
     for i in plots:
         idx = next(
-            x
-            for x, val in enumerate(bpp)
-            if val == min(bpp, key=lambda x: abs(x - i / 100))
+            x for x, val in enumerate(bpp) if val == min(bpp, key=lambda x: abs(x - i / 100))
         )
 
         nx.set_edge_attributes(G, 0, "load")
         edge_load_evo = {k: v[idx] for k, v in edge_loads.items()}
         edge_load_evo = {literal_eval(k): v for k, v in edge_load_evo.items()}
-        edge_load_evo = {
-            (k[0], k[1], 0): v / max_load for k, v in edge_load_evo.items()
-        }
+        edge_load_evo = {(k[0], k[1], 0): v / max_load for k, v in edge_load_evo.items()}
         nx.set_edge_attributes(G, edge_load_evo, "load")
         ec_evo = ox.plot.get_edge_colors_by_attr(G, "load", cmap="magma_r")
 
         save_path = join(
             plot_folder_evo,
-            f'{save}-load-mode-{buildup:d}{minmode}{ex_inf:d}-{i}.'
-            f'{params["plot_format"]}',
+            f"{save}-load-mode-{buildup:d}{minmode}{ex_inf:d}-{i}." f'{params["plot_format"]}',
         )
         if params["titles"]:
             plot_edges(
@@ -1775,13 +1733,9 @@ def plot_mode(
     los = trdt["street"]
     los_cs = trdt_cs["street"]
 
-    trdt_st = {
-        st: len_on_st for st, len_on_st in trdt.items() if st not in ["street", "all"]
-    }
+    trdt_st = {st: len_on_st for st, len_on_st in trdt.items() if st not in ["street", "all"]}
     trdt_st_cs = {
-        st: len_on_st
-        for st, len_on_st in trdt_cs.items()
-        if st not in ["street", "all"]
+        st: len_on_st for st, len_on_st in trdt_cs.items() if st not in ["street", "all"]
     }
 
     total_cost = sum_total_cost(cost, buildup)
@@ -1872,8 +1826,7 @@ def plot_mode(
 
     save_path_ba = join(
         plot_folder,
-        f'{save}_ba_tc_zoom_mode_{buildup:d}{minmode}{ex_inf:d}.'
-        f'{params["plot_format"]}',
+        f"{save}_ba_tc_zoom_mode_{buildup:d}{minmode}{ex_inf:d}." f'{params["plot_format"]}',
     )
     plot_ba_cost(
         bpp_normed,
@@ -1890,7 +1843,7 @@ def plot_mode(
 
     save_path_ba = join(
         plot_folder,
-        f'{save}_ba_tc_econconst_mode_{buildup:d}{minmode}{ex_inf:d}.'
+        f"{save}_ba_tc_econconst_mode_{buildup:d}{minmode}{ex_inf:d}."
         f'{params["plot_format"]}',
     )
     plot_ba_cost(
@@ -1908,7 +1861,7 @@ def plot_mode(
 
     save_path_los_nos = join(
         plot_folder,
-        f'{save}_trips_on_street_mode_{buildup:d}{minmode}{ex_inf:d}.'
+        f"{save}_trips_on_street_mode_{buildup:d}{minmode}{ex_inf:d}."
         f'{params["plot_format"]}',
     )
     plot_los_nos(
@@ -1933,7 +1886,7 @@ def plot_mode(
         title="",
         save=join(
             plot_folder,
-            f'{save}_comp_st_driven_{buildup:d}{minmode}{ex_inf:d}.'
+            f"{save}_comp_st_driven_{buildup:d}{minmode}{ex_inf:d}."
             f'{params["plot_format"]}',
         ),
         figsize=params["figs_comp_st"],
@@ -1966,8 +1919,7 @@ def plot_mode(
 
     save_path_ba = join(
         plot_folder,
-        f'{save}_ba_tc_prop_mode_{buildup:d}{minmode}{ex_inf:d}.'
-        f'{params["plot_format"]}',
+        f"{save}_ba_tc_prop_mode_{buildup:d}{minmode}{ex_inf:d}." f'{params["plot_format"]}',
     )
     if ex_inf:
         plot_ba_cost(
@@ -2166,9 +2118,7 @@ def plot_city(
     data_comp["unique trips"] = utrips_re
     data_comp["unique trips (incl round trips)"] = utrips
 
-    stations = [
-        station for trip_id, nbr_of_trips in trip_nbrs.items() for station in trip_id
-    ]
+    stations = [station for trip_id, nbr_of_trips in trip_nbrs.items() for station in trip_id]
     stations = list(set(stations))
     data_comp["nbr of stations"] = len(stations)
     data_comp["stations"] = stations
@@ -2401,9 +2351,7 @@ def comp_city(
         )
 
     if params["titles"]:
-        ax.set_title(
-            f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"]
-        )
+        ax.set_title(f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"])
     if params["legends"]:
         ax.legend(loc="lower right", fontsize=params["fs_legend"], frameon=False)
 
@@ -2547,9 +2495,7 @@ def comp_modes(
     )
 
     if params["titles"]:
-        ax.set_title(
-            f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"]
-        )
+        ax.set_title(f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"])
     if params["legends"]:
         ax.legend(loc="lower right", fontsize=params["fs_legend"], frameon=False)
 
@@ -2627,8 +2573,7 @@ def plot_city_comparison(
         cmap = colormaps[params["cmap_city_comp"]]
     else:
         print(
-            "Colormap must be colormap obbject or string. "
-            "Defaulting to viridis colormap."
+            "Colormap must be colormap obbject or string. " "Defaulting to viridis colormap."
         )
         cmap = colormaps["viridis"]
 
@@ -2661,9 +2606,7 @@ def plot_city_comparison(
         )
 
     fig1.savefig(
-        join(
-            paths["plot_folder"], "results", f'{figsave}_{mode}.{params["plot_format"]}'
-        ),
+        join(paths["plot_folder"], "results", f'{figsave}_{mode}.{params["plot_format"]}'),
         bbox_inches="tight",
     )
     plt.close()

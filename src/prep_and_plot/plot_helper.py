@@ -83,9 +83,7 @@ def load_comparison_state_results(result_file: str) -> dict:
     with open(result_file, "r") as f:
         data = json.load(f)
 
-    data["edge_loads"] = {
-        tuple(literal_eval(k)): v for k, v in data["edge_loads"].items()
-    }
+    data["edge_loads"] = {tuple(literal_eval(k)): v for k, v in data["edge_loads"].items()}
     return data
 
 
@@ -232,9 +230,7 @@ def total_distance_traveled_list(
         # On residential
         on_residential = [i["total_length_on_residential"] for i in total_dist]
         dist["residential"] = [x / on_all[idx] for idx, x in enumerate(on_residential)]
-        dist_cs["residential"] = (
-            total_dist_cs["total_length_on_residential"] / on_all_cs
-        )
+        dist_cs["residential"] = total_dist_cs["total_length_on_residential"] / on_all_cs
 
         # On bike paths
         on_bike = [i["total_length_on_bike_paths"] for i in total_dist]
@@ -497,8 +493,7 @@ def get_edge_color(
         G[edge[0]][edge[1]][0][attr] = True
         G[edge[1]][edge[0]][0][attr] = True
     return [
-        color if data[attr] else "#999999"
-        for u, v, data in G.edges(keys=False, data=True)
+        color if data[attr] else "#999999" for u, v, data in G.edges(keys=False, data=True)
     ]
 
 
@@ -568,9 +563,7 @@ def plot_barh(
         y = y_pos[idx]
         if values[idx] > 0.05 * max_value:
             r, g, b, _ = color
-            text_color = (
-                "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
-            )
+            text_color = "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
             ax.text(
                 x,
                 y,
@@ -747,9 +740,7 @@ def plot_barv(
         ax.set_xticklabels(keys)
         ax.tick_params(axis="x", labelsize=24)
     else:
-        ax.tick_params(
-            axis="x", which="both", bottom=False, top=False, labelbottom=False
-        )
+        ax.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
 
     ax.yaxis.set_minor_locator(AutoMinorLocator())
     ax.tick_params(axis="y", labelsize=24)
@@ -825,9 +816,7 @@ def plot_barv_stacked(
                 y = bottom[v_idx] + v / 2
                 x = x_pos[v_idx]
                 r, g, b, _ = color
-                text_color = (
-                    "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
-                )
+                text_color = "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
                 ax.text(
                     x,
                     y,
@@ -953,9 +942,7 @@ def plot_histogram(
     else:
         ax.xaxis.set_minor_locator(AutoMinorLocator())
     if not xaxis:
-        ax.tick_params(
-            axis="x", hich="both", bottom=False, top=False, labelbottom=False
-        )
+        ax.tick_params(axis="x", hich="both", bottom=False, top=False, labelbottom=False)
 
     fig.savefig(save_path, bbox_inches="tight")
 
@@ -1072,9 +1059,7 @@ def plot_graph(
 
     if max_node_size > 0:
         # scatter plot the nodes' x/y coordinates
-        gdf_nodes = ox.convert.graph_to_gdfs(G, edges=False, node_geometry=False)[
-            ["x", "y"]
-        ]
+        gdf_nodes = ox.convert.graph_to_gdfs(G, edges=False, node_geometry=False)[["x", "y"]]
         ax.scatter(
             x=gdf_nodes["x"],
             y=gdf_nodes["y"],

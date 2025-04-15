@@ -2,6 +2,7 @@ import sys
 from os.path import join
 from setup_paths import paths
 from setup_params import params
+
 sys.path.append(paths["project_dir"])
 from src.prep_and_plot import prep_city
 
