@@ -98,8 +98,8 @@ include("minmodes.jl")
 export MinPureCyclists, MinPenaltyWeightedCyclists, MinTotalDetour
 export MinPenaltyCostWeightedCyclists, MinPenaltyLengthWeightedCyclists
 export MinPenaltyLengthCostWeightedCyclists
-export ConsumerSurplus, ConsumerSurplusCost
-export ConsumerSurplusHealthBenefits, ConsumerSurplusHealthBenefitsCost
+export TravelTimeBenefits, TravelTimeBenefitsCost
+export TravelTimeBenefitsHealthBenefits, TravelTimeBenefitsHealthBenefitsCost
 
 include("params_io.jl")
 

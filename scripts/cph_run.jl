@@ -8,8 +8,8 @@ base_save = "cph_tud"
 param_saves = vcat([""], ["_noisy_demand_"*"$i" for i in 1:10], ["_noisy_costs_"*"$i" for i in 1:10], ["_noisy_speeds_"*"$i" for i in 1:10])
 modes = [
     ("Penalty", BikePathNet.MinPenaltyLengthCostWeightedCyclists()), 
-    ("CS", BikePathNet.ConsumerSurplusCost()), 
-    ("CSHB", BikePathNet.ConsumerSurplusHealthBenefitsCost()),
+    ("TB", BikePathNet.TravelTimeBenefitsCost()),
+    ("TBHB", BikePathNet.TravelTimeBenefitsHealthBenefitsCost()),
     ]
 
 for param_save in param_saves
@@ -101,8 +101,8 @@ end
 eval_saves = vcat(["_noisy_demand_"*"$i" for i in 1:10], ["_noisy_costs_"*"$i" for i in 1:10], ["_noisy_speeds_"*"$i" for i in 1:10])
 eval_modes = [
     "Penalty", 
-    "CS", 
-    "CSHB",
+    "TB",
+    "TBHB",
     ]
 
 for eval_save in eval_saves

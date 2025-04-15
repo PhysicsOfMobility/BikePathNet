@@ -10,13 +10,13 @@ struct MinPenaltyLengthWeightedCyclists <: AbstractMinmode end
 "Minmode using the number of cyclist divided by the [`car_penalty`](@ref), and cost of the street/segment, multiplied by the `edge.length` as the load."
 struct MinPenaltyLengthCostWeightedCyclists <: AbstractMinmode end
 "Minmode using the consumer surplus as the load."
-struct ConsumerSurplus <: AbstractMinmode end
+struct TravelTimeBenefits <: AbstractMinmode end
 "Minmode using the consumer surplus, divided by the cost of the street/segment as the load."
-struct ConsumerSurplusCost <: AbstractMinmode end
+struct TravelTimeBenefitsCost <: AbstractMinmode end
 "Minmode using the consumer surplus and health benefits as the load."
-struct ConsumerSurplusHealthBenefits <: AbstractMinmode end
+struct TravelTimeBenefitsHealthBenefits <: AbstractMinmode end
 "Minmode using the consumer surplus and health benefits, divided by the cost of the street/segment as the load."
-struct ConsumerSurplusHealthBenefitsCost <: AbstractMinmode end
+struct TravelTimeBenefitsHealthBenefitsCost <: AbstractMinmode end
 
 "Minmode using the total added/removed felt detour when removing/adding a bike path on a street as the load."
 struct MinTotalDetour <: AbstractMinmode end
@@ -122,22 +122,22 @@ struct MinPenaltyLengthCostWeightedCyclistsState <: AbstractMinmodeState
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct ConsumerSurplusState <: AbstractMinmodeState
+struct TravelTimeBenefitsState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct ConsumerSurplusCostState <: AbstractMinmodeState
+struct TravelTimeBenefitsCostState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct ConsumerSurplusHealthBenefitsState <: AbstractMinmodeState
+struct TravelTimeBenefitsHealthBenefitsState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct ConsumerSurplusHealthBenefitsCostState <: AbstractMinmodeState
+struct TravelTimeBenefitsHealthBenefitsCostState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
@@ -155,13 +155,13 @@ end
 function _weighted_trip_load(_::MinPenaltyLengthCostWeightedCyclistsState, trip, shortest_path_state, e, penalty_weight)
     number_of_users(trip, shortest_path_state) / penalty_weight * e.length
 end
-function _weighted_trip_load(_::ConsumerSurplusState, trip, shortest_path_state, e, penalty_weight)
+function _weighted_trip_load(_::TravelTimeBenefitsState, trip, shortest_path_state, e, penalty_weight)
     0.5 * trip.vot * (number_of_users(trip, shortest_path_state) + trip.number_of_users) * e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
 end
-function _weighted_trip_load(_::ConsumerSurplusCostState, trip, shortest_path_state, e, penalty_weight)
+function _weighted_trip_load(_::TravelTimeBenefitsCostState, trip, shortest_path_state, e, penalty_weight)
     0.5 * trip.vot * (number_of_users(trip, shortest_path_state) + trip.number_of_users) * e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
 end
-function _weighted_trip_load(_::ConsumerSurplusHealthBenefitsState, trip, shortest_path_state, e, penalty_weight)
+function _weighted_trip_load(_::TravelTimeBenefitsHealthBenefitsState, trip, shortest_path_state, e, penalty_weight)
     delta_te = e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
     beta = trip.beta
     P_0 = trip.p_bike_0 / (trip.p_bike_0 + trip.p_other)
@@ -174,7 +174,7 @@ function _weighted_trip_load(_::ConsumerSurplusHealthBenefitsState, trip, shorte
     delat_HB = trip.cyclist.value_hb * beta * n * lambda * (P_t-1)
     return (delta_CS + delat_HB) * delta_te
 end
-function _weighted_trip_load(_::ConsumerSurplusHealthBenefitsCostState, trip, shortest_path_state, e, penalty_weight)
+function _weighted_trip_load(_::TravelTimeBenefitsHealthBenefitsCostState, trip, shortest_path_state, e, penalty_weight)
     delta_te = e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
     beta = trip.beta
     P_0 = trip.p_bike_0 / (trip.p_bike_0 + trip.p_other)
@@ -193,30 +193,30 @@ const MINSTATES_WITH_GRAPH = Union{
     MinPenaltyCostWeightedCyclistsState,
     MinPenaltyLengthWeightedCyclistsState,
     MinPenaltyLengthCostWeightedCyclistsState,
-    ConsumerSurplusState,
-    ConsumerSurplusCostState,
-    ConsumerSurplusHealthBenefitsState,
-    ConsumerSurplusHealthBenefitsCostState
+    TravelTimeBenefitsState,
+    TravelTimeBenefitsCostState,
+    TravelTimeBenefitsHealthBenefitsState,
+    TravelTimeBenefitsHealthBenefitsCostState
 }
 const MINMODES_WITH_GRAPH = Union{
     MinPenaltyWeightedCyclists,
     MinPenaltyCostWeightedCyclists,
     MinPenaltyLengthWeightedCyclists,
     MinPenaltyLengthCostWeightedCyclists,
-    ConsumerSurplus,
-    ConsumerSurplusCost,
-    ConsumerSurplusHealthBenefits,
-    ConsumerSurplusHealthBenefitsCost
+    TravelTimeBenefits,
+    TravelTimeBenefitsCost,
+    TravelTimeBenefitsHealthBenefits,
+    TravelTimeBenefitsHealthBenefitsCost
 }
 const MINMODES_TO_MINSTATES_WITH_GRAPH = Dict(
     MinPenaltyWeightedCyclists => MinPenaltyWeightedCyclistsState,
     MinPenaltyCostWeightedCyclists => MinPenaltyCostWeightedCyclistsState,
     MinPenaltyLengthWeightedCyclists => MinPenaltyLengthWeightedCyclistsState,
     MinPenaltyLengthCostWeightedCyclists => MinPenaltyLengthCostWeightedCyclistsState,
-    ConsumerSurplus => ConsumerSurplusState,
-    ConsumerSurplusCost => ConsumerSurplusCostState,
-    ConsumerSurplusHealthBenefits => ConsumerSurplusHealthBenefitsState,
-    ConsumerSurplusHealthBenefitsCost => ConsumerSurplusHealthBenefitsCostState,
+    TravelTimeBenefits => TravelTimeBenefitsState,
+    TravelTimeBenefitsCost => TravelTimeBenefitsCostState,
+    TravelTimeBenefitsHealthBenefits => TravelTimeBenefitsHealthBenefitsState,
+    TravelTimeBenefitsHealthBenefitsCost => TravelTimeBenefitsHealthBenefitsCostState,
 )
 
 function init_minmode_state(_::AlgorithmConfig{T}, shortest_path_states, g::Graph) where {T<:MINMODES_WITH_GRAPH}
