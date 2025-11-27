@@ -1,7 +1,6 @@
 """
 This module includes all necessary functions for the plotting functionality.
 """
-
 import math
 from copy import deepcopy
 
@@ -205,7 +204,9 @@ def plot_ba_cost(
             bpp_idx = next(x for x, val in enumerate(bpp) if val == bpp_x)
             cost_y = cost[bpp_idx]
 
-            xmin, ymax = coord_transf(bpp_comp, cost_comp, xmax=1, xmin=0, ymax=1, ymin=0)
+            xmin, ymax = coord_transf(
+                bpp_comp, cost_comp, xmax=1, xmin=0, ymax=1, ymin=0
+            )
 
             if len(bpp_vlines) != 0:
                 bpp_comp_close = min(bpp_vlines.keys(), key=lambda x: abs(x - bpp_comp))
@@ -217,11 +218,15 @@ def plot_ba_cost(
                 bpp_vlines[bpp_comp] = ymax
 
             if len(cost_hlines) != 0:
-                cost_comp_close = min(cost_hlines.keys(), key=lambda x: abs(x - cost_comp))
+                cost_comp_close = min(
+                    cost_hlines.keys(), key=lambda x: abs(x - cost_comp)
+                )
                 if abs(cost_comp - cost_comp_close) > 0.001:
                     cost_hlines[cost_comp] = xmin
                 else:
-                    cost_hlines[cost_comp_close] = min(cost_hlines[cost_comp_close], xmin)
+                    cost_hlines[cost_comp_close] = min(
+                        cost_hlines[cost_comp_close], xmin
+                    )
             else:
                 cost_hlines[cost_comp] = xmin
             cost_y_close = min(cost_hlines.keys(), key=lambda x: abs(x - cost_y))
@@ -251,8 +256,12 @@ def plot_ba_cost(
                 lw=params["lw_cost"],
             )
 
-        ax2.set_ylabel("normalized cost", fontsize=params["fs_axl"], color=params["c_cost"])
-        ax2.tick_params(axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_cost"])
+        ax2.set_ylabel(
+            "normalized cost", fontsize=params["fs_axl"], color=params["c_cost"]
+        )
+        ax2.tick_params(
+            axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_cost"]
+        )
 
         if y_max - y_min < 2.0:
             ax2.yaxis.set_minor_locator(AutoMinorLocator())
@@ -302,14 +311,22 @@ def plot_ba_cost(
         xmax, ymax = coord_transf(
             bpp_comp, max([ba_y, ba_comp]), xmin=x1, xmax=x2, ymin=y1, ymax=y2
         )
-        ax1ins.axvline(x=bpp_comp, ymax=ymax, ymin=0, c=params["c_ba"], ls="--", alpha=0.5)
-        ax1ins.axhline(y=ba_comp, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5)
+        ax1ins.axvline(
+            x=bpp_comp, ymax=ymax, ymin=0, c=params["c_ba"], ls="--", alpha=0.5
+        )
+        ax1ins.axhline(
+            y=ba_comp, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5
+        )
         if abs(ba_y - ba_comp) > 0.0001:
-            ax1ins.axhline(y=ba_y, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5)
+            ax1ins.axhline(
+                y=ba_y, xmax=xmax, xmin=0, c=params["c_ba"], ls="--", alpha=0.5
+            )
 
         ax1ins.set_xlim(x1, x2)
         ax1ins.set_ylim(y1, y2)
-        ax1ins.tick_params(axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_ba"])
+        ax1ins.tick_params(
+            axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_ba"]
+        )
         ax1ins.tick_params(axis="x", labelsize=params["fs_ticks"])
         ax1ins.xaxis.set_major_locator(ticker.MultipleLocator(0.05))
         ax1ins.xaxis.set_minor_locator(AutoMinorLocator())
@@ -338,13 +355,19 @@ def plot_ba_cost(
         else:
             f_ba = logistic(bpp_int, *optimize.curve_fit(logistic, bpp, ba)[0])
         ax1_diff.plot(bpp_int, f_ba, color="k")
-        df_ba = np.array([(f_ba[i + 1] - f_ba[i]) / step for i in range(len(bpp_int))[:-2]])
+        df_ba = np.array(
+            [(f_ba[i + 1] - f_ba[i]) / step for i in range(len(bpp_int))[:-2]]
+        )
 
         f_cost = interpolate.interp1d(bpp, cost)
-        df_cost = np.array([(f_cost(i + step) - f_cost(i)) / step for i in bpp_int[:-2]])
+        df_cost = np.array(
+            [(f_cost(i + step) - f_cost(i)) / step for i in bpp_int[:-2]]
+        )
         ba_cost_mes = df_ba - df_cost
 
-        ax1ins_diff = inset_axes(ax1_diff, width="40%", height="40%", loc=4, borderpad=0.75)
+        ax1ins_diff = inset_axes(
+            ax1_diff, width="40%", height="40%", loc=4, borderpad=0.75
+        )
         for axis in ["top", "bottom", "left", "right"]:
             ax1ins_diff.spines[axis].set_linewidth(0.5)
         ax1ins_diff.set_xlim(0.0, 1.0)
@@ -619,7 +642,9 @@ def plot_los_nos(
         )
     ax2.yaxis.set_minor_locator(AutoMinorLocator())
     ax2.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
-    ax2.set_ylabel("cyclists on street", fontsize=params["fs_axl"], color=params["c_nos"])
+    ax2.set_ylabel(
+        "cyclists on street", fontsize=params["fs_axl"], color=params["c_nos"]
+    )
     ax2.tick_params(axis="y", labelsize=params["fs_ticks"], labelcolor=params["c_nos"])
 
     if params["titles"]:
@@ -899,7 +924,9 @@ def plot_edge_load(
     if edge_color is None:
         edge_color = ox.plot.get_edge_colors_by_attr(G, "load", cmap="viridis")
     if edge_width is None:
-        edge_width = np.array([0 if d["load"] == 0 else 1 for u, v, d in G.edges(data=True)])
+        edge_width = np.array(
+            [0 if d["load"] == 0 else 1 for u, v, d in G.edges(data=True)]
+        )
     if edge_zorder is None:
         min_non_zero_load = min([v for v in edge_load.values() if abs(v) > 0.0])
         edge_zorder = np.array([d["load"] for u, v, d in G.edges(data=True)])
@@ -924,7 +951,8 @@ def plot_edge_load(
         for idx, leg_colors in enumerate(legend_colors):
             bbox = (idx / len(legend_colors) + 0.1, -0.05, 0.5, 1)
             leg_bars = [
-                Line2D([0], [0], color=color_i, lw=lw_leg) for color_i in leg_colors.values()
+                Line2D([0], [0], color=color_i, lw=lw_leg)
+                for color_i in leg_colors.values()
             ]
             leg_name = [name_i for name_i in legend_colors[0].keys()]
             legend = ax.legend(
@@ -960,7 +988,7 @@ def plot_edge_load(
     plt.savefig(
         join(
             plot_folder,
-            f"{save}-load-{buildup:d}{minmode}{ex_inf:d}_{data_set}."
+            f'{save}-load-{buildup:d}{minmode}{ex_inf:d}_{data_set}.'
             f'{params["plot_format"]}',
         ),
         bbox_inches="tight",
@@ -1080,7 +1108,9 @@ def plot_bp_comparison(
         params=params,
     )
 
-    print(f"Difference in BPP between cs and algo: " f"{abs(bpp_cs - bpp_algo[idx]):4.3f}")
+    print(
+        f"Difference in BPP between cs and algo: " f"{abs(bpp_cs - bpp_algo[idx]):4.3f}"
+    )
 
     ee_algo_cut = ee_algo[:idx]
     for edge in ee_algo_cut:
@@ -1402,7 +1432,9 @@ def plot_edges(
     if params["legends"]:
         leg = [
             Line2D([0], [0], color=params["color_algo"], lw=params["lw_legend_bp_evo"]),
-            Line2D([0], [0], color=params["color_ex_inf"], lw=params["lw_legend_bp_evo"]),
+            Line2D(
+                [0], [0], color=params["color_ex_inf"], lw=params["lw_legend_bp_evo"]
+            ),
         ]
         ax.legend(
             leg,
@@ -1466,7 +1498,9 @@ def plot_bp_evo(
 
     plot_folder_evo = join(plot_folder, "evolution")
     Path(plot_folder_evo).mkdir(parents=True, exist_ok=True)
-    base_save = join(plot_folder_evo, f"{save}-edited-mode-{buildup:d}{minmode}{ex_inf:d}-")
+    base_save = join(
+        plot_folder_evo, f"{save}-edited-mode-{buildup:d}{minmode}{ex_inf:d}-"
+    )
 
     if buildup:
         ee = edited_edges
@@ -1474,7 +1508,9 @@ def plot_bp_evo(
         ee = list(reversed(edited_edges))
 
     for i in evo_params["bpp_range"]:
-        idx = next(x for x, val in enumerate(bpp) if val == min(bpp, key=lambda x: abs(x - i)))
+        idx = next(
+            x for x, val in enumerate(bpp) if val == min(bpp, key=lambda x: abs(x - i))
+        )
         ee_evo = ee[:idx]
         ec_evo = get_edge_color_bp(
             G,
@@ -1559,19 +1595,24 @@ def plot_edge_load_evo(
     plots = range(0, int(max(bpp) * 100) + 1)
     for i in plots:
         idx = next(
-            x for x, val in enumerate(bpp) if val == min(bpp, key=lambda x: abs(x - i / 100))
+            x
+            for x, val in enumerate(bpp)
+            if val == min(bpp, key=lambda x: abs(x - i / 100))
         )
 
         nx.set_edge_attributes(G, 0, "load")
         edge_load_evo = {k: v[idx] for k, v in edge_loads.items()}
         edge_load_evo = {literal_eval(k): v for k, v in edge_load_evo.items()}
-        edge_load_evo = {(k[0], k[1], 0): v / max_load for k, v in edge_load_evo.items()}
+        edge_load_evo = {
+            (k[0], k[1], 0): v / max_load for k, v in edge_load_evo.items()
+        }
         nx.set_edge_attributes(G, edge_load_evo, "load")
         ec_evo = ox.plot.get_edge_colors_by_attr(G, "load", cmap="magma_r")
 
         save_path = join(
             plot_folder_evo,
-            f"{save}-load-mode-{buildup:d}{minmode}{ex_inf:d}-{i}." f'{params["plot_format"]}',
+            f'{save}-load-mode-{buildup:d}{minmode}{ex_inf:d}-{i}.'
+            f'{params["plot_format"]}',
         )
         if params["titles"]:
             plot_edges(
@@ -1733,9 +1774,13 @@ def plot_mode(
     los = trdt["street"]
     los_cs = trdt_cs["street"]
 
-    trdt_st = {st: len_on_st for st, len_on_st in trdt.items() if st not in ["street", "all"]}
+    trdt_st = {
+        st: len_on_st for st, len_on_st in trdt.items() if st not in ["street", "all"]
+    }
     trdt_st_cs = {
-        st: len_on_st for st, len_on_st in trdt_cs.items() if st not in ["street", "all"]
+        st: len_on_st
+        for st, len_on_st in trdt_cs.items()
+        if st not in ["street", "all"]
     }
 
     total_cost = sum_total_cost(cost, buildup)
@@ -1793,7 +1838,7 @@ def plot_mode(
     # Plotting
     save_path_ba = join(
         plot_folder,
-        f'{save}_ba_20_mode_{buildup:d}{minmode}{ex_inf:d}.{params["plot_format"]}',
+        f'{save}_ba_20_{buildup:d}{minmode}{ex_inf:d}.{params["plot_format"]}',
     )
     plot_ba_cost(
         bpp_normed,
@@ -1810,7 +1855,7 @@ def plot_mode(
 
     save_path_ba = join(
         plot_folder,
-        f'{save}_ba_tc_mode_{buildup:d}{minmode}{ex_inf:d}.{params["plot_format"]}',
+        f'{save}_ba_tc_{buildup:d}{minmode}{ex_inf:d}.{params["plot_format"]}',
     )
     plot_ba_cost(
         bpp_normed,
@@ -1826,7 +1871,8 @@ def plot_mode(
 
     save_path_ba = join(
         plot_folder,
-        f"{save}_ba_tc_zoom_mode_{buildup:d}{minmode}{ex_inf:d}." f'{params["plot_format"]}',
+        f'{save}_ba_tc_zoom_{buildup:d}{minmode}{ex_inf:d}.'
+        f'{params["plot_format"]}',
     )
     plot_ba_cost(
         bpp_normed,
@@ -1843,7 +1889,7 @@ def plot_mode(
 
     save_path_ba = join(
         plot_folder,
-        f"{save}_ba_tc_econconst_mode_{buildup:d}{minmode}{ex_inf:d}."
+        f'{save}_ba_tc_econconst_{buildup:d}{minmode}{ex_inf:d}.'
         f'{params["plot_format"]}',
     )
     plot_ba_cost(
@@ -1861,7 +1907,7 @@ def plot_mode(
 
     save_path_los_nos = join(
         plot_folder,
-        f"{save}_trips_on_street_mode_{buildup:d}{minmode}{ex_inf:d}."
+        f'{save}_trips_on_street_{buildup:d}{minmode}{ex_inf:d}.'
         f'{params["plot_format"]}',
     )
     plot_los_nos(
@@ -1886,7 +1932,7 @@ def plot_mode(
         title="",
         save=join(
             plot_folder,
-            f"{save}_comp_st_driven_{buildup:d}{minmode}{ex_inf:d}."
+            f'{save}_comp_st_driven_{buildup:d}{minmode}{ex_inf:d}.'
             f'{params["plot_format"]}',
         ),
         figsize=params["figs_comp_st"],
@@ -1919,7 +1965,8 @@ def plot_mode(
 
     save_path_ba = join(
         plot_folder,
-        f"{save}_ba_tc_prop_mode_{buildup:d}{minmode}{ex_inf:d}." f'{params["plot_format"]}',
+        f'{save}_ba_tc_prop_{buildup:d}{minmode}{ex_inf:d}.'
+        f'{params["plot_format"]}',
     )
     if ex_inf:
         plot_ba_cost(
@@ -2098,12 +2145,11 @@ def plot_city(
 
     plt.rcdefaults()
     plt.rcParams["font.family"] = "sans-serif"
-    plt.rcParams["font.sans-serif"] = ["Arial"]
+    #plt.rcParams["font.sans-serif"] = ["Arial"]
 
     if paths["demand_file"] is None:
         paths["demand_file"] = join(input_folder, f"{save}_demand.json")
-    demand = load_demand(paths["demand_file"])
-    trip_nbrs = {literal_eval(k): v for k, v in demand.items()}
+    trip_nbrs = load_demand(paths["demand_file"])
     trip_nbrs_re = {
         trip_id: nbr_of_trips
         for trip_id, nbr_of_trips in trip_nbrs.items()
@@ -2118,7 +2164,9 @@ def plot_city(
     data_comp["unique trips"] = utrips_re
     data_comp["unique trips (incl round trips)"] = utrips
 
-    stations = [station for trip_id, nbr_of_trips in trip_nbrs.items() for station in trip_id]
+    stations = [
+        station for trip_id, nbr_of_trips in trip_nbrs.items() for station in trip_id
+    ]
     stations = list(set(stations))
     data_comp["nbr of stations"] = len(stations)
     data_comp["stations"] = stations
@@ -2129,6 +2177,7 @@ def plot_city(
         filepath=paths["graph_file"],
         node_dtypes={"street_count": float},
     )
+    print(f"CRS: {G.graph['crs']}")
     data_comp["nodes"] = len(G.nodes)
     data_comp["edges"] = len(G.edges)
 
@@ -2168,7 +2217,7 @@ def plot_city(
     cs_bike_paths = []
     for m in modes:
         data_algo[m] = load_algorithm_results(
-            join(output_folder, f"{save}_data_mode_{m[0]:d}{m[1]}{m[2]:d}.json")
+            join(output_folder, f"{save}_data_{m[0]:d}{m[1]}{m[2]:d}.json")
         )
         if len(cs_bike_paths) < len(data_algo[m]["used_primary_secondary_edges"]):
             cs_bike_paths = data_algo[m]["used_primary_secondary_edges"]
@@ -2351,7 +2400,9 @@ def comp_city(
         )
 
     if params["titles"]:
-        ax.set_title(f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"])
+        ax.set_title(
+            f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"]
+        )
     if params["legends"]:
         ax.legend(loc="lower right", fontsize=params["fs_legend"], frameon=False)
 
@@ -2367,11 +2418,12 @@ def comp_city(
 
 
 def comp_modes(
-    city: str,
-    save: str,
-    modes: list[tuple[bool, int, bool]],
-    params: dict | None = None,
-    paths: dict | None = None,
+        city: str,
+        save: str,
+        modes: list[tuple[bool, int, bool]],
+        save_mode: str = "",
+        params: dict | None = None,
+        paths: dict | None = None,
 ):
     """Compare the bikeability different algorithm modes for the same data set.
 
@@ -2383,6 +2435,8 @@ def comp_modes(
         Save name of the city/area
     modes : list[tuple[bool, int, bool]]
         Modes to compare.
+    save_mode : str
+        Additional appendix to the saved figure names
     params : dict | None
         Params for plots etc., check 'setup_params.py' in the 'scripts' folder.
         (Default value = None)
@@ -2423,23 +2477,25 @@ def comp_modes(
         bpps[mode_save] = bpp
         costs[mode_save] = [i / max_cost for i in costs[mode_save]]
 
-    bpps_comp = dict()
+    ba_max = max(max(bas[f"{mode[0]:d}{mode[1]}{mode[2]:d}"]) for mode in modes)
+    ba_min = min(min(bas[f"{mode[0]:d}{mode[1]}{mode[2]:d}"]) for mode in modes)
+    ba_diff_80 = 0.8 * (ba_max - ba_min) + ba_min
+
+    bbps_max = max(max(bpps[f"{mode[0]:d}{mode[1]}{mode[2]:d}"]) for mode in modes)
+    bbps_min = min(min(bpps[f"{mode[0]:d}{mode[1]}{mode[2]:d}"]) for mode in modes)
+
     bpps_80 = dict()
     bas_80 = dict()
     for mode in modes:
         mode_save = f"{mode[0]:d}{mode[1]}{mode[2]:d}"
-        if mode_save != "010":
-            ba_y = min(bas["010"], key=lambda y: abs(y - bas[mode_save][0]))
-            ba_idx = next(x for x, val in enumerate(bas["010"]) if val == ba_y)
-            bpps_comp[mode_save] = bpps["010"][ba_idx]
-        ba_80 = min(bas[mode_save], key=lambda y: abs(y - 0.8))
+        ba_80 = min(bas[mode_save], key=lambda y: abs(y - ba_diff_80))
         ba_80_idx = next(x for x, val in enumerate(bas[mode_save]) if val == ba_80)
         bas_80[mode_save] = ba_80
         bpps_80[mode_save] = bpps[mode_save][ba_80_idx]
 
     fig, ax = plt.subplots(dpi=params["dpi"], figsize=params["figs_ba_cost"])
-    ax.set_xlim(0.0, 1.0)
-    ax.set_ylim(0.0, 1.0)
+    ax.set_xlim(bbps_min, bbps_max)
+    ax.set_ylim(ba_min, ba_max)
     for axis in ["top", "bottom", "left", "right"]:
         ax.spines[axis].set_linewidth(0.5)
 
@@ -2457,21 +2513,19 @@ def comp_modes(
     ax.xaxis.set_minor_locator(AutoMinorLocator())
     ax.xaxis.set_major_locator(ticker.MultipleLocator(0.2))
 
-    colors = ["C0", "C1", "C2", "C3"]
-
     for idx, mode in enumerate(modes):
         mode_save = f"{mode[0]:d}{mode[1]}{mode[2]:d}"
         ax.plot(
             bpps[mode_save],
             bas[mode_save][: end + 1],
             label=mode_save,
-            c=colors[idx],
+            c=f"C{idx}",
             lw=params["lw_ba"],
         )
-
+        _, ymax = coord_transf(bpps_80[mode_save], ba_diff_80, xmax=bbps_max, xmin=bbps_min, ymax=ba_max, ymin=ba_min)
         ax.axvline(
             x=bpps_80[mode_save],
-            ymax=0.8,
+            ymax=ymax,
             ymin=0,
             c="#808080",
             ls="--",
@@ -2479,14 +2533,15 @@ def comp_modes(
             lw=params["lw_ba"],
         )
         print(
-            f"{save} {mode_save}: Reached ba=0.8 at "
+            f"{save} {mode_save}: Reached ba={ba_diff_80:1.2f} at "
             f"{bpps_80[mode_save]:3.2f}"
             f" normed bpp"
         )
 
+    xmax, _ = coord_transf(max(bpps_80.values()), ba_diff_80, xmax=bbps_max, xmin=bbps_min, ymax=ba_max, ymin=ba_min)
     ax.axhline(
-        y=0.8,
-        xmax=max(bpps_80.values()),
+        y=ba_diff_80,
+        xmax=xmax,
         xmin=0,
         c="#808080",
         ls="--",
@@ -2495,7 +2550,9 @@ def comp_modes(
     )
 
     if params["titles"]:
-        ax.set_title(f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"])
+        ax.set_title(
+            f"Bikeability for {city.capitalize()}", fontsize=params["fs_title"]
+        )
     if params["legends"]:
         ax.legend(loc="lower right", fontsize=params["fs_legend"], frameon=False)
 
@@ -2504,7 +2561,7 @@ def comp_modes(
             paths["plot_folder"],
             "results",
             save,
-            f'{save}_ba_mode_comp.{params["plot_format"]}',
+            f'{save}_ba_comp{save_mode}.{params["plot_format"]}',
         ),
         bbox_inches="tight",
     )
@@ -2542,12 +2599,12 @@ def plot_city_comparison(
         {
             "text.usetex": True,
             "font.family": "sans-serif",
-            "font.sans-serif": ["Arial"],
+            #"font.sans-serif": ["Arial"],
         }
     )
     plt.rcdefaults()
     plt.rcParams["font.family"] = "sans-serif"
-    plt.rcParams["font.sans-serif"] = ["Arial"]
+    #plt.rcParams["font.sans-serif"] = ["Arial"]
 
     comp_folder = paths["comp_folder"]
 
@@ -2573,7 +2630,8 @@ def plot_city_comparison(
         cmap = colormaps[params["cmap_city_comp"]]
     else:
         print(
-            "Colormap must be colormap obbject or string. " "Defaulting to viridis colormap."
+            "Colormap must be colormap obbject or string. "
+            "Defaulting to viridis colormap."
         )
         cmap = colormaps["viridis"]
 
@@ -2606,7 +2664,285 @@ def plot_city_comparison(
         )
 
     fig1.savefig(
-        join(paths["plot_folder"], "results", f'{figsave}_{mode}.{params["plot_format"]}'),
+        join(
+            paths["plot_folder"], "results", f'{figsave}_{mode}.{params["plot_format"]}'
+        ),
         bbox_inches="tight",
     )
     plt.close()
+
+
+def plot_artificial_network(nw_name, save, mode=None, params=None, paths=None):
+    if mode is None:
+        mode = (False, 1, False)
+    if paths is None:
+        paths = create_default_paths()
+    if params is None:
+        params = create_default_params()
+
+    mode_str = f"{mode[0]:d}{mode[1]}{mode[2]:d}"
+
+    # Define city specific folders
+    comp_folder = paths["comp_folder"]
+    plot_folder = join(paths["plot_folder"], "results", save)
+    input_folder = join(paths["input_folder"], save)
+    output_folder = join(paths["output_folder"], save)
+
+    data_base = load_comparison_state_results(join(output_folder, f"{save}_data_comparison_state_base.json"))
+    data_opt = load_comparison_state_results(join(output_folder, f"{save}_data_comparison_state_opt.json"))
+
+    # Create non-existing folders
+    Path(comp_folder).mkdir(parents=True, exist_ok=True)
+    Path(plot_folder).mkdir(parents=True, exist_ok=True)
+
+    data_comp = dict()
+
+    plt.rcdefaults()
+    plt.rcParams["font.family"] = "sans-serif"
+    #plt.rcParams["font.sans-serif"] = ["Arial"]
+
+    trip_nbrs = load_demand(join(input_folder, f"{save}_demand.json"))
+
+    trips = sum([sum(trip.values()) for trip in trip_nbrs.values()])
+    data_comp["total trips"] = trips
+    data_comp["total trips (incl round trips)"] = trips
+    utrips = len(trip_nbrs.keys())
+    data_comp["unique trips"] = utrips
+
+    stations = [
+        station
+        for trip_id, nbr_of_trips in trip_nbrs.items()
+        for station in trip_id
+    ]
+    stations = list(set(stations))
+    data_comp["nbr of stations"] = len(stations)
+    data_comp["stations"] = stations
+
+    G = ox.load_graphml(
+        filepath=join(input_folder, f"{save}.graphml"),
+        node_dtypes={"street_count": float},
+    )
+
+    data_comp["nodes"] = len(G.nodes)
+    data_comp["edges"] = len(G.edges)
+
+    sn_ratio = len(stations) / len(G.nodes())
+    data_comp["ratio stations nodes"] = sn_ratio
+
+    """plot_used_nodes(
+        city=nw_name,
+        save=save,
+        G=G,
+        trip_nbrs=trip_nbrs,
+        stations=stations,
+        plot_folder=plot_folder,
+        params=params,
+    )"""
+
+    algo_data = load_algorithm_results(join(output_folder, f"{save}_data_{mode_str}.json"))
+
+    if params["cut"]:
+        end_plot = algo_data["cut"]
+    else:
+        end_plot = len(algo_data["bike_path_percentage"])-1
+    print(f"{nw_name}: mode {mode_str}: cut after {end_plot}")
+
+    data_comp["algorithm"] = dict()
+    grp_algo = data_comp["algorithm"]
+    grp_algo[mode_str] = dict()
+    sbgrp_algo = grp_algo[mode_str]
+
+    buildup = mode[0]
+    minmode = mode[1]
+    ex_inf = mode[2]
+
+    total_real_distance_traveled_base = data_base["total_real_distances_traveled"]
+    total_felt_distance_traveled_base = data_base["total_felt_distance_traveled"]
+
+    total_real_distance_traveled_opt = data_opt["total_real_distances_traveled"]
+    total_felt_distance_traveled_opt = data_opt["total_felt_distance_traveled"]
+
+    edited_edges = [(e[0], e[1], 0) for e in list(reversed(algo_data["edited_edges"]))]
+
+    bike_path_perc = algo_data["bike_path_percentage"]
+    cost = algo_data["total_cost"]
+    total_real_distance_traveled = algo_data["total_real_distances_traveled"]
+    total_felt_distance_traveled = algo_data["total_felt_distance_traveled"]
+    nbr_on_street = algo_data["number_on_street"]
+
+    _, trdt_base = total_distance_traveled_list(
+        total_real_distance_traveled, total_real_distance_traveled_base,
+        buildup
+    )
+    tfdt_base = total_felt_distance_traveled_base
+
+    trdt, trdt_opt = total_distance_traveled_list(
+        total_real_distance_traveled, total_real_distance_traveled_opt, buildup
+    )
+    tfdt_opt = total_felt_distance_traveled_opt
+
+    if buildup:
+        bpp = bike_path_perc
+        tfdt = total_felt_distance_traveled
+        nos = [x / max(nbr_on_street) for x in nbr_on_street]
+    else:
+        bpp = list(reversed(bike_path_perc))
+        tfdt = list(reversed(total_felt_distance_traveled))
+        nos = list(reversed([x / max(nbr_on_street) for x in nbr_on_street]))
+
+    trdt_min = trdt_opt["all"]
+    trdt_max = trdt_base["all"]
+    tfdt_min = tfdt_opt
+    tfdt_max = tfdt_base
+
+    if tfdt_max - tfdt_min != 0:
+        ba = [(tfdt_max - i) / (tfdt_max - tfdt_min) for i in tfdt]
+    else:
+        ba = [(tfdt_max - i) for i in tfdt]
+
+    los = trdt["street"]
+
+    total_cost = sum_total_cost(cost, buildup)
+
+    bpp_normed = [i for i in bpp]
+    max_bpp = bpp_normed[-1]
+    total_cost_normed = [x / total_cost[-1] for x in total_cost]
+
+    # Plotting
+    save_path_ba = join(plot_folder, f'{save}_ba_{mode_str}.{params["plot_format"]}')
+    plot_ba_cost(bpp_normed, ba, total_cost_normed,
+                 [],
+                 [],
+                 save_path_ba,
+                 plot_cost=False,
+                 ex_inf=ex_inf,
+                 x_max=max(1.0, math.ceil(max_bpp * 10) / 10),
+                 y_max=max(1.0, math.ceil(max(ba) * 10) / 10),
+                 params=params)
+
+    for n, d in G.nodes(data=True):
+        G.nodes[n]["level"] = literal_eval(d["level"])
+        if "rampnode" in d.keys():
+            G.nodes[n]["rampnode"] = literal_eval(d["rampnode"])
+
+    bpp_layers = {i: [0] for i in set([d for n, d in G.nodes(data="level")])}
+    for layer in bpp_layers.keys():
+        H = deepcopy(G)
+        H.remove_nodes_from([n for n, d in G.nodes(data=True) if not d["level"] == layer])
+        total_len = total_len_of_bike_paths(H)
+        bike_path_len = 0
+        for ee in edited_edges:
+            if (ee[0], ee[1]) in list(H.edges()):
+                bike_path_len += H[ee[0]][ee[1]][0]["length"]
+            bpp_layers[layer].append(bike_path_len/total_len)
+    bpp_layers_plot = {i: [bpp_layer_i for bpp_layer_i in bpp_layer] for i, bpp_layer in bpp_layers.items()}
+
+    fig, ax = plt.subplots(dpi=params["dpi"], figsize=params["figs_ba_cost"])
+    ax.set_xlim(0.0, max(bpp_normed))
+    ax.set_ylim(0.0, 1.0)  # max(max(bpp_layers_plot.values()))
+    ax.set_ylabel(r"norm. rel. len. of bike paths per layer $\lambda_{i}$", fontsize=params["fs_axl"])
+    ax.set_xlabel(
+        r"normalized relative length of bike paths $\lambda$",
+        fontsize=params["fs_axl"],
+    )
+    ax.tick_params(axis="y", labelsize=params["fs_ticks"])
+    ax.tick_params(axis="x", labelsize=params["fs_ticks"])
+
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    for layer, bpp_layer_plot in bpp_layers_plot.items():
+        ax.plot(bpp_normed, bpp_layer_plot,
+                label=layer,
+                )
+
+    if params["titles"]:
+        ax.set_title("Bike Paths per Layer", fontsize=params["fs_title"])
+    if True:
+        ax.legend(loc="lower right", fontsize=params["fs_legend"], frameon=False)
+
+    save_path_ml = join(plot_folder, f'{save}_ml_{mode_str}.{params["plot_format"]}')
+    fig.savefig(save_path_ml, bbox_inches="tight")
+
+    if params["plot_evo"]:
+        evo_folder = join(paths["plot_folder"], "results", save, "evo")
+        Path(evo_folder).mkdir(parents=True, exist_ok=True)
+
+        (xmin, xmax), (ymin, ymax) = get_extent(G, pad=0.1)
+        evo_plot_points = np.sort(np.unique(np.concatenate([np.linspace(max(bpp_normed), 0.01, 30), np.array([1])])))
+
+        for bpp_cs in evo_plot_points:
+            bpp_x = min(bpp_normed, key=lambda x: abs(x - bpp_cs))
+            bpp_idx = next(x for x, val in enumerate(bpp_normed) if val == bpp_x)
+
+            H = deepcopy(G)
+            H.remove_edges_from([e for e in G.edges() if (e[0], e[1], 0) not in edited_edges[:bpp_idx+1]])
+            H.remove_nodes_from(list(nx.isolates(H)))
+
+            draw_ml_nw(H, save, save_folder=evo_folder, max_layers=len(set([d for n, d in G.nodes(data="level")])),
+                       title=f"{bpp_x:3.2f}", params=params, paths=paths, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+
+    sbgrp_algo["edited edges"] = algo_data["edited_edges"]
+    sbgrp_algo["end"] = end_plot
+    sbgrp_algo["bpp normed"] = bpp_normed
+    sbgrp_algo["bpp at end"] = max_bpp
+    sbgrp_algo["bpp complete"] = bpp
+    sbgrp_algo["ba"] = ba
+    sbgrp_algo["cost normed"] = total_cost_normed
+    sbgrp_algo["cost complete"] = total_cost
+    sbgrp_algo["number_on_street"] = nos
+    sbgrp_algo["los"] = los
+    sbgrp_algo["total_felt_distance_traveled"] = tfdt
+    sbgrp_algo["total_felt_distance_traveled_max"] = tfdt_max
+    sbgrp_algo["total_felt_distance_traveled_min"] = tfdt_min
+    sbgrp_algo["total_real_distances_traveled"] = trdt["all"]
+    sbgrp_algo["total_real_distance_traveled_max"] = trdt_max
+    sbgrp_algo["total_real_distance_traveled_min"] = trdt_min
+    sbgrp_algo["bp layers"] = json.dumps(bpp_layers_plot)
+
+    plt.close(fig)
+
+    save_algorithm_results(data_comp, join(comp_folder, f"comp_{save}.json"))
+
+
+def average_artificial_network_layers(saves, paths, params, figsave="comp_average_layers", mode="010", layers=10):
+
+    plot_folder = join(paths["plot_folder"], "results")
+
+    all_bp_layers = {k: [] for k in range(0, layers)}
+    bpp_base = np.linspace(0, 1, num=10000)
+
+    for nw_name, save in saves.items():
+        data = load_algorithm_results(join(paths["comp_folder"], f"comp_{save}.json"))
+        bpp = data["algorithm"][mode]["bpp complete"]
+        bp_layers = data["algorithm"][mode]["bp layers"]
+        bp_layers = {int(k): v for k, v in bp_layers.items()}
+        for k in range(0, layers):
+            f = interpolate.interp1d(bpp, bp_layers[k])
+            all_bp_layers[k].append(f(bpp_base))
+    all_bp_layers = {k: np.mean(np.array(bps_layer), axis=0) for k, bps_layer in all_bp_layers.items()}
+
+    fig, ax = plt.subplots(dpi=params["dpi"], figsize=params["figs_ba_cost"])
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel(r"norm. rel. len. of bike paths per layer $\lambda_{i}$", fontsize=params["fs_axl"])
+    ax.set_xlabel(
+        r"normalized relative length of bike paths $\lambda$",
+        fontsize=params["fs_axl"],
+    )
+    ax.tick_params(axis="y", labelsize=params["fs_ticks"])
+    ax.tick_params(axis="x", labelsize=params["fs_ticks"])
+
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(0.2))
+    for layer, bpp_layer_plot in all_bp_layers.items():
+        ax.plot(bpp_base, bpp_layer_plot, label=layer)
+
+    ax.set_title("Bike Paths per Layer", fontsize=params["fs_title"])
+    ax.legend(loc="lower right", fontsize=params["fs_legend"], frameon=False)
+
+    save_path_ml = join(plot_folder, f'{figsave}.{params["plot_format"]}')
+    fig.savefig(save_path_ml, bbox_inches="tight")

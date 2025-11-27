@@ -4,6 +4,7 @@ functionality.
 """
 
 import json
+
 import networkx as nx
 import numpy as np
 import osmnx as ox
@@ -12,15 +13,19 @@ import shapely
 import shapely.ops as ops
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+
 from ast import literal_eval
 from collections.abc import Iterable, Sequence
 from functools import partial
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from math import ceil, floor, log10
 from matplotlib.axes._axes import Axes
 from matplotlib.colors import ListedColormap, to_rgba
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
+from matplotlib_scalebar.scalebar import ScaleBar
 from osmnx.plot import _config_ax, _save_and_show
+from os.path import join
 from pathlib import Path
 from .data_helper import get_street_type
 
@@ -83,7 +88,9 @@ def load_comparison_state_results(result_file: str) -> dict:
     with open(result_file, "r") as f:
         data = json.load(f)
 
-    data["edge_loads"] = {tuple(literal_eval(k)): v for k, v in data["edge_loads"].items()}
+    data["edge_loads"] = {
+        tuple(literal_eval(k)): v for k, v in data["edge_loads"].items()
+    }
     return data
 
 
@@ -104,6 +111,16 @@ def magnitude(x: float) -> int:
         return int(floor(log10(abs(x))))
     else:
         return 0
+
+
+def total_len_of_bike_paths(G: nx.MultiGraph | nx.MultiDiGraph):
+    total_len = 0
+    for e0, e1, d in G.edges(data=True):
+        if not isinstance(d["ramp"], bool):
+            d["ramp"] = literal_eval(d["ramp"])
+        if not d["ramp"]:
+            total_len += d["length"]
+    return total_len
 
 
 def len_of_bikepath_by_type(
@@ -200,8 +217,8 @@ def total_distance_traveled_list(
     dist = {}
     dist_cs = {}
 
-    # On all
     if isinstance(total_dist, list):
+        # On all
         on_all = [i["total_length_on_all"] for i in total_dist]
         on_all_cs = total_dist_cs["total_length_on_all"]
 
@@ -230,7 +247,9 @@ def total_distance_traveled_list(
         # On residential
         on_residential = [i["total_length_on_residential"] for i in total_dist]
         dist["residential"] = [x / on_all[idx] for idx, x in enumerate(on_residential)]
-        dist_cs["residential"] = total_dist_cs["total_length_on_residential"] / on_all_cs
+        dist_cs["residential"] = (
+            total_dist_cs["total_length_on_residential"] / on_all_cs
+        )
 
         # On bike paths
         on_bike = [i["total_length_on_bike_paths"] for i in total_dist]
@@ -370,8 +389,8 @@ def get_street_type_ratio(G: nx.MultiGraph | nx.MultiDiGraph) -> dict:
 
 
 def calc_polygon_area(
-    polygon: shapely.Polygon,
-    remove: Iterable[shapely.Polygon] | None = None,
+    polygon,
+    remove: None = None,
     unit: str = "sqkm",
 ) -> float:
     """Calculates the area of a given lat/long Polygon.
@@ -493,7 +512,8 @@ def get_edge_color(
         G[edge[0]][edge[1]][0][attr] = True
         G[edge[1]][edge[0]][0][attr] = True
     return [
-        color if data[attr] else "#999999" for u, v, data in G.edges(keys=False, data=True)
+        color if data[attr] else "#999999"
+        for u, v, data in G.edges(keys=False, data=True)
     ]
 
 
@@ -563,7 +583,9 @@ def plot_barh(
         y = y_pos[idx]
         if values[idx] > 0.05 * max_value:
             r, g, b, _ = color
-            text_color = "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
+            text_color = (
+                "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
+            )
             ax.text(
                 x,
                 y,
@@ -740,7 +762,9 @@ def plot_barv(
         ax.set_xticklabels(keys)
         ax.tick_params(axis="x", labelsize=24)
     else:
-        ax.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+        ax.tick_params(
+            axis="x", which="both", bottom=False, top=False, labelbottom=False
+        )
 
     ax.yaxis.set_minor_locator(AutoMinorLocator())
     ax.tick_params(axis="y", labelsize=24)
@@ -816,7 +840,9 @@ def plot_barv_stacked(
                 y = bottom[v_idx] + v / 2
                 x = x_pos[v_idx]
                 r, g, b, _ = color
-                text_color = "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
+                text_color = (
+                    "white" if (r * 0.299 + g * 0.587 + b * 0.114) < 0.25 else "black"
+                )
                 ax.text(
                     x,
                     y,
@@ -942,7 +968,9 @@ def plot_histogram(
     else:
         ax.xaxis.set_minor_locator(AutoMinorLocator())
     if not xaxis:
-        ax.tick_params(axis="x", hich="both", bottom=False, top=False, labelbottom=False)
+        ax.tick_params(
+            axis="x", hich="both", bottom=False, top=False, labelbottom=False
+        )
 
     fig.savefig(save_path, bbox_inches="tight")
 
@@ -963,6 +991,7 @@ def plot_graph(
     edge_alpha: float | None = None,
     edge_zorder: int | Iterable[int] = 1,
     bbox: tuple[float, float, float, float] | None = None,
+    scale_bar : bool = False,
     show: bool = True,
     close: bool = False,
     save: bool = False,
@@ -1054,12 +1083,16 @@ def plot_graph(
         alpha = gdf_edges.alpha if edge_alpha is not None else None
 
         ax = gdf_edges.plot(
-            ax=ax, color=color, lw=linewidth, alpha=alpha, zorder=1, facecolor=bgcolor
+            ax=ax, color=color, lw=linewidth, alpha=alpha, zorder=1
         )
+        if scale_bar:
+            ax.add_artist(ScaleBar(1))
 
     if max_node_size > 0:
         # scatter plot the nodes' x/y coordinates
-        gdf_nodes = ox.convert.graph_to_gdfs(G, edges=False, node_geometry=False)[["x", "y"]]
+        gdf_nodes = ox.convert.graph_to_gdfs(G, edges=False, node_geometry=False)[
+            ["x", "y"]
+        ]
         ax.scatter(
             x=gdf_nodes["x"],
             y=gdf_nodes["y"],
@@ -1092,4 +1125,87 @@ def plot_graph(
         filepath=filepath,
         dpi=dpi,
     )
+    return fig, ax
+
+
+def draw_nodes(g, nodes, ax, *args, **kwargs):
+    node_positions = {n: (d["x"], d["y"], d["level"]) for n, d in g.nodes(data=True)}
+    x, y, z = zip(*[node_positions[node] for node in nodes])
+    ax.scatter(x, y, z, *args, **kwargs)
+    return ax
+
+
+def draw_edges(g, edges, ax, *args, **kwargs):
+    node_positions = {n: (d["x"], d["y"], d["level"]) for n, d in g.nodes(data=True)}
+    segments = [(node_positions[source], node_positions[target]) for source, target in edges]
+    line_collection = Line3DCollection(segments, *args, **kwargs)
+    ax.add_collection3d(line_collection)
+    return ax
+
+
+def draw_layer_edges(g, layer, ax, *args, **kwargs):
+    h = g.subgraph([n for n, d in g.nodes(data=True) if d["level"] == layer])
+    draw_edges(h, h.edges(), ax, *args, **kwargs)
+    return ax
+
+
+def draw_ramp_edges(g, layer, ax, *args, **kwargs):
+    h = g.subgraph([n for n, d in g.nodes(data=True) if d["level"] == layer])
+    draw_edges(g, [(n, d["rampnode"]) for n, d in h.nodes(data=True)], ax, *args, **kwargs)
+    return ax
+
+
+def get_extent(g, pad=0.1):
+    node_positions = {n: (d["x"], d["y"], d["level"]) for n, d in g.nodes(data=True)}
+    xyz = np.array(list(node_positions.values()))
+    xmin, ymin, _ = np.min(xyz, axis=0)
+    xmax, ymax, _ = np.max(xyz, axis=0)
+    dx = xmax - xmin
+    dy = ymax - ymin
+    return (xmin - pad * dx, xmax + pad * dx), \
+        (ymin - pad * dy, ymax + pad * dy)
+
+
+def draw_plane(g, z, ax, xmin=None, xmax=None, ymin=None, ymax=None, *args, **kwargs):
+    if xmin is None or xmax is None or ymin is None or ymax is None:
+        (xmin, xmax), (ymin, ymax) = get_extent(g, pad=0.1)
+    u = np.linspace(xmin, xmax, 10)
+    v = np.linspace(ymin, ymax, 10)
+    U, V = np.meshgrid(u, v)
+    W = z * np.ones_like(U)
+    ax.plot_surface(U, V, W, *args, **kwargs)
+
+
+def draw_ml_nw(g, save=None, save_folder=None, max_layers=None, title="", params=None, paths=None,
+               xmin=None, xmax=None, ymin=None, ymax=None, layer_colors=None):
+    if save is not None and save_folder is None:
+        save_folder = join(paths["plot_folder"], "results", save, "evo")
+        Path(save_folder).mkdir(parents=True, exist_ok=True)
+    if max_layers is None:
+        max_layers = len(set([d for n, d in g.nodes(data="level")]))
+    if layer_colors is None:
+        cmap = plt.cm.get_cmap("viridis")
+        layer_colors = [cmap(i) for i in np.linspace(0, 1, num=max_layers)]
+
+    fig = plt.figure(dpi=params["dpi"], figsize=params["figs_snetwork"])
+    ax = fig.add_subplot(111, projection='3d')
+
+    for z in range(max_layers):
+        draw_plane(g, z, ax, xmin, xmax, ymin, ymax, color=layer_colors[z], alpha=0.05, zorder=1)
+
+    for z in range(max_layers):
+        if len([n for n, l in g.nodes(data="level") if l == z]) > 0:
+            draw_layer_edges(g, z, ax, color=layer_colors[z], alpha=0.3, linestyle='-', zorder=2)
+
+    ax.set_axis_off()
+    if title is not None:
+        ax.set_title(title, fontsize=params["fs_title"])
+
+    if save is not None:
+        if len(title) > 0:
+            fig_path = join(save_folder, f'{save}_multi_layer_{title.replace(".", "_")}.{params["plot_format"]}')
+        else:
+            fig_path = join(save_folder, f'{save}_multi_layer.{params["plot_format"]}')
+        fig.savefig(fig_path, bbox_inches="tight")
+        plt.close(fig)
     return fig, ax

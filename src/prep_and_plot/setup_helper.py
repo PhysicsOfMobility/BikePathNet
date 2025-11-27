@@ -28,6 +28,8 @@ def create_default_paths() -> dict:
     paths["plot_folder"] = join(project_dir, "plots")
     paths["comp_folder"] = join(paths["data_dir"], "plot_data")
 
+    paths["elevation_raster_file"] = None
+
     return paths
 
 
