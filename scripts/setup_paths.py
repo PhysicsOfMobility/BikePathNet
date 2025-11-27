@@ -18,4 +18,3 @@ paths["graph_file"] = None
 paths["demand_file"] = None
 
 paths["plot_folder"] = join(project_dir, "plots")
-paths["comp_folder"] = join(paths["data_dir"], "plot_data")
