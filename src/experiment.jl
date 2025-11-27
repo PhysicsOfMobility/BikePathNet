@@ -2,7 +2,7 @@
 Full description of an experiment.
 """
 @kwdef struct Experiment
-    "name of experiment for logging (TODO??)"
+    "name of experiment for logging"
     save::String
     "name of the city"
     city_name::String

@@ -42,6 +42,8 @@ function prepare_graph!(g::Graph, algorithm_config)
         if algorithm_config.use_bike_highways
             if edge.ramp
                 edge.edited = true
+                edge.bike_highway = false
+                edge.blocked = true
             end
         else
             edge.bike_highway = false

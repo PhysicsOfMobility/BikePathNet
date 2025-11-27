@@ -123,7 +123,7 @@ function parse_node!(reader, keys)
 
     node_dict = parse_data_dict!(reader, keys)
 
-    intersection_size = Symbol(node_dict["intersection_size"])
+    intersection_size = Symbol(get(node_dict, "intersection_size", "small"))
     node = Node(
         id,
         intersection_size,
@@ -151,8 +151,12 @@ function parse_edge!(reader, keys)
     # read values needed multiple times
     street_length = parse(Float64, edge_dict["length"])
     street_type = Symbol(edge_dict["highway"])
-    slope = parse(Float64, edge_dict["grade"])
-    parsed_turn_badness = parse_turn_badness(edge_dict["turn_penalty"])
+    slope = parse(Float64, get(edge_dict, "grade", 0.0))
+    if haskey(edge_dict, "turn_penalty")
+        parsed_turn_badness = parse_turn_badness(edge_dict["turn_penalty"])
+    else
+        parsed_turn_badness = Dict(-1 => "small")
+    end
 
     # create with default values where needed.
     edge = Edge(
@@ -168,7 +172,7 @@ function parse_edge!(reader, keys)
         bike_path=true,  # This is set to the correct value when preparing for algorithm with config
         bike_highway=parsebool(get(edge_dict, "bike_highway", "false")),
         ramp=parsebool(get(edge_dict, "ramp", "false")),
-        cost=parse(Float64, edge_dict["cost"]),
+        cost=parse(Float64, get(edge_dict, "cost", 0.0)),
         seg_id=parse(Int, get(edge_dict, "seg_id", "0")),
         edited=false,  # This is set to the correct value when preparing for algoritm with config
     )

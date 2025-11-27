@@ -1,25 +1,39 @@
 # MARK: Minmode definitions
 "Minmode using the pure number of cyclists as the load on a street."
-struct MinPureCyclists <: AbstractMinmode end
-"Minmode using the number of cyclist divided by the [`car_penalty`](@ref) as the load."
-struct MinPenaltyWeightedCyclists <: AbstractMinmode end
-"Minmode using the number of cyclist divided by the [`car_penalty`](@ref) and cost of the street/segment as the load."
-struct MinPenaltyCostWeightedCyclists <: AbstractMinmode end
-"Minmode using the number of cyclist divided by the [`car_penalty`](@ref), multiplied by the `edge.length` as the load."
-struct MinPenaltyLengthWeightedCyclists <: AbstractMinmode end
-"Minmode using the number of cyclist divided by the [`car_penalty`](@ref), and cost of the street/segment, multiplied by the `edge.length` as the load."
-struct MinPenaltyLengthCostWeightedCyclists <: AbstractMinmode end
+struct PureCyclists <: AbstractMinmode end
+"Minmode using the number of cyclists as the load on a street normalized by the segments length to ensure consitent handling of segments with multiple edges."
+struct CyclistsLengthNormed <: AbstractMinmode end
+"Minmode using the number of cyclist divided by the [`car_penalty`](@ref) multiplied by the `edge.length`, divided by the length of the edge/segment as the load."
+struct NormalizedTravelTimePenalty <: AbstractMinmode end
+"Minmode estimating the change in traveltime as the load."
+struct TotalTravelTimeEstimation <: AbstractMinmode end
+"Minmode estimating the change in traveltime, divided by the length of the street/segment as the load."
+struct TotalTravelTimeEstimationPerLength <: AbstractMinmode end
+"Minmode estimating the change in traveltime, divided by the cost of the street/segment as the load."
+struct TotalTravelTimeEstimationPerCost <: AbstractMinmode end
+"Minmode estimating the change in traveltime, capped by the maximal change in travel time as the load."
+struct TotalTravelTimeEstimationCapped <: AbstractMinmode end
+"Minmode estimating the change in traveltime, capped by the maximal change in travel time, divided by the length of the street/segment as the load."
+struct TotalTravelTimeEstimationCappedPerLength <: AbstractMinmode end
+"Minmode estimating the change in traveltime, capped by the maximal change in travel time, divided by the cost of the street/segment as the load."
+struct TotalTravelTimeEstimationCappedPerCost <: AbstractMinmode end
+"Minmode estimating the change in traveltime, completely uncapped."
+struct TotalTravelTimeEstimationUncapped <: AbstractMinmode end
 "Minmode using the consumer surplus as the load."
 struct TravelTimeBenefits <: AbstractMinmode end
 "Minmode using the consumer surplus, divided by the cost of the street/segment as the load."
-struct TravelTimeBenefitsCost <: AbstractMinmode end
+struct TravelTimeBenefitsPerCost <: AbstractMinmode end
 "Minmode using the consumer surplus and health benefits as the load."
 struct TravelTimeBenefitsHealthBenefits <: AbstractMinmode end
 "Minmode using the consumer surplus and health benefits, divided by the cost of the street/segment as the load."
-struct TravelTimeBenefitsHealthBenefitsCost <: AbstractMinmode end
+struct TravelTimeAndHealthBenefitsPerCost <: AbstractMinmode end
 
 "Minmode using the total added/removed felt detour when removing/adding a bike path on a street as the load."
-struct MinTotalDetour <: AbstractMinmode end
+struct TotalDetour <: AbstractMinmode end
+"Minmode using the total added/removed felt detour when removing/adding a bike path on a street, divided by the length of the street/segment as the load.."
+struct TotalDetourPerLength <: AbstractMinmode end
+"Minmode using the total added/removed felt detour when removing/adding a bike path on a street, divided by the cost of the street/segment as the load.."
+struct TotalDetourPerCost <: AbstractMinmode end
 
 "Minmode using a predefined fixed order."
 struct FixedOrderMinmode{T} <: AbstractMinmode
@@ -57,18 +71,18 @@ returned by [`path_loads`](@ref), updates the `state` with the new `path_loads`.
 function set_path_loads! end
 
 
-# MARK: MinPureCyclistsState
-struct MinPureCyclistsState <: AbstractMinmodeState
+# MARK: PureCyclistsState
+struct PureCyclistsState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
 end
 
-function init_minmode_state(::AlgorithmConfig{MinPureCyclists}, shortest_path_states, ::Graph)
+function init_minmode_state(::AlgorithmConfig{PureCyclists}, shortest_path_states, ::Graph)
     num_nodes = length(shortest_path_states[1].felt_length)
     aggregated_loads = spzeros(num_nodes, num_nodes)
     individual_loads = [spzeros(num_nodes, num_nodes) for _ in shortest_path_states]
 
-    minmode_state = MinPureCyclistsState(aggregated_loads, individual_loads)
+    minmode_state = PureCyclistsState(aggregated_loads, individual_loads)
 
     for (i, shortest_path_state) in enumerate(shortest_path_states)
         loads = path_loads(minmode_state, shortest_path_state)
@@ -77,7 +91,7 @@ function init_minmode_state(::AlgorithmConfig{MinPureCyclists}, shortest_path_st
     return minmode_state
 end
 
-function path_loads(state::MinPureCyclistsState, shortest_path_state)
+function path_loads(state::PureCyclistsState, shortest_path_state)
     loads = spzeros(size(state.aggregated_loads))
     for trip in shortest_path_state.trips
         dst = trip.destination
@@ -90,7 +104,7 @@ function path_loads(state::MinPureCyclistsState, shortest_path_state)
     return loads
 end
 
-function set_path_loads!(state::MinPureCyclistsState, path_id, path_loads)
+function set_path_loads!(state::PureCyclistsState, path_id, path_loads)
     state.aggregated_loads .-= state.individual_loads[path_id]
     state.aggregated_loads .+= path_loads
 
@@ -102,22 +116,47 @@ end
 # MARK: Structurally similar
 # TODO: these could be refactored to something like
 # struct MinStateWithGraph{AbstractMinmode} <: AbstractMinmodeState
-struct MinPenaltyWeightedCyclistsState <: AbstractMinmodeState
+struct CyclistsLengthNormedState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct MinPenaltyCostWeightedCyclistsState <: AbstractMinmodeState
+struct TotalTravelTimeEstimationUncappedState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct MinPenaltyLengthWeightedCyclistsState <: AbstractMinmodeState
+struct NormalizedTravelTimePenaltyState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct MinPenaltyLengthCostWeightedCyclistsState <: AbstractMinmodeState
+struct TotalTravelTimeEstimationState <: AbstractMinmodeState
+    aggregated_loads::SparseMatrixCSC{Float64,Int64}
+    individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
+    g::Graph
+end
+struct TotalTravelTimeEstimationCappedState <: AbstractMinmodeState
+    aggregated_loads::SparseMatrixCSC{Float64,Int64}
+    individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
+    g::Graph
+end
+struct TotalTravelTimeEstimationPerLengthState <: AbstractMinmodeState
+    aggregated_loads::SparseMatrixCSC{Float64,Int64}
+    individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
+    g::Graph
+end
+struct TotalTravelTimeEstimationCappedPerLengthState <: AbstractMinmodeState
+    aggregated_loads::SparseMatrixCSC{Float64,Int64}
+    individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
+    g::Graph
+end
+struct TotalTravelTimeEstimationPerCostState <: AbstractMinmodeState
+    aggregated_loads::SparseMatrixCSC{Float64,Int64}
+    individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
+    g::Graph
+end
+struct TotalTravelTimeEstimationCappedPerCostState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
@@ -127,7 +166,7 @@ struct TravelTimeBenefitsState <: AbstractMinmodeState
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct TravelTimeBenefitsCostState <: AbstractMinmodeState
+struct TravelTimeBenefitsPerCostState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
@@ -137,32 +176,55 @@ struct TravelTimeBenefitsHealthBenefitsState <: AbstractMinmodeState
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
-struct TravelTimeBenefitsHealthBenefitsCostState <: AbstractMinmodeState
+struct TravelTimeAndHealthBenefitsPerCostState <: AbstractMinmodeState
     aggregated_loads::SparseMatrixCSC{Float64,Int64}
     individual_loads::Vector{SparseMatrixCSC{Float64,Int64}}
     g::Graph
 end
 
-function _weighted_trip_load(_::MinPenaltyWeightedCyclistsState, trip, shortest_path_state, _, penalty_weight)
-    number_of_users(trip, shortest_path_state) / penalty_weight
+function _weighted_trip_load(_::CyclistsLengthNormedState, trip, shortest_path_state, e, _, _)
+    number_of_users(trip, shortest_path_state) * e.length
 end
-function _weighted_trip_load(_::MinPenaltyCostWeightedCyclistsState, trip, shortest_path_state, _, penalty_weight)
-    number_of_users(trip, shortest_path_state) / penalty_weight
+function _weighted_trip_load(_::NormalizedTravelTimePenaltyState, trip, shortest_path_state, e, _, new_speed_penalty)
+    number_of_users(trip, shortest_path_state) / new_speed_penalty * e.length
 end
-function _weighted_trip_load(_::MinPenaltyLengthWeightedCyclistsState, trip, shortest_path_state, e, penalty_weight)
-    number_of_users(trip, shortest_path_state) / penalty_weight * e.length
+function _weighted_trip_load(_::TotalTravelTimeEstimationState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    return number_of_users(trip, shortest_path_state) * e.length * (1 / trip.cyclist.speed) * ((1 / new_speed_penalty) - (1 / current_speed_penalty))
 end
-function _weighted_trip_load(_::MinPenaltyLengthCostWeightedCyclistsState, trip, shortest_path_state, e, penalty_weight)
-    number_of_users(trip, shortest_path_state) / penalty_weight * e.length
+function _weighted_trip_load(_::TotalTravelTimeEstimationPerLengthState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    return number_of_users(trip, shortest_path_state) * e.length * (1 / trip.cyclist.speed) * ((1 / new_speed_penalty) - (1 / current_speed_penalty))
 end
-function _weighted_trip_load(_::TravelTimeBenefitsState, trip, shortest_path_state, e, penalty_weight)
-    0.5 * trip.vot * (number_of_users(trip, shortest_path_state) + trip.number_of_users) * e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
+function _weighted_trip_load(_::TotalTravelTimeEstimationPerCostState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    return number_of_users(trip, shortest_path_state) * e.length * (1 / trip.cyclist.speed) * ((1 / new_speed_penalty) - (1 / current_speed_penalty))
 end
-function _weighted_trip_load(_::TravelTimeBenefitsCostState, trip, shortest_path_state, e, penalty_weight)
-    0.5 * trip.vot * (number_of_users(trip, shortest_path_state) + trip.number_of_users) * e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
+function _weighted_trip_load(_::TotalTravelTimeEstimationCappedState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    e_length_edited = e.bike_highway ? Inf : e.length
+    delta_te = 1 / trip.cyclist.speed * (e_length_edited / new_speed_penalty - e.length / current_speed_penalty)
+    return number_of_users(trip, shortest_path_state) * min(delta_te, trip.t_0 - shortest_path_state.felt_length[trip.destination])
 end
-function _weighted_trip_load(_::TravelTimeBenefitsHealthBenefitsState, trip, shortest_path_state, e, penalty_weight)
-    delta_te = e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
+function _weighted_trip_load(_::TotalTravelTimeEstimationCappedPerLengthState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    e_length_edited = e.bike_highway ? Inf : e.length
+    delta_te = 1 / trip.cyclist.speed * (e_length_edited / new_speed_penalty - e.length / current_speed_penalty)
+    return number_of_users(trip, shortest_path_state) * min(delta_te, trip.t_0 - shortest_path_state.felt_length[trip.destination])
+end
+function _weighted_trip_load(_::TotalTravelTimeEstimationCappedPerCostState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    e_length_edited = e.bike_highway ? Inf : e.length
+    delta_te = 1 / trip.cyclist.speed * (e_length_edited / new_speed_penalty - e.length / current_speed_penalty)
+    return number_of_users(trip, shortest_path_state) * min(delta_te, trip.t_0 - shortest_path_state.felt_length[trip.destination])
+end
+function _weighted_trip_load(_::TotalTravelTimeEstimationUncappedState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    e_length_edited = e.bike_highway ? Inf : e.length
+    delta_te = 1 / trip.cyclist.speed * (e_length_edited / new_speed_penalty - e.length / current_speed_penalty)
+    return number_of_users(trip, shortest_path_state) * delta_te
+end
+function _weighted_trip_load(_::TravelTimeBenefitsState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    0.5 * trip.vot * (number_of_users(trip, shortest_path_state) + trip.number_of_users) * e.length * (1 / trip.cyclist.speed) * ((1 / new_speed_penalty) - (1 / current_speed_penalty))
+end
+function _weighted_trip_load(_::TravelTimeBenefitsPerCostState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    0.5 * trip.vot * (number_of_users(trip, shortest_path_state) + trip.number_of_users) * e.length * (1 / trip.cyclist.speed) * ((1 / new_speed_penalty) - (1 / current_speed_penalty))
+end
+function _weighted_trip_load(_::TravelTimeBenefitsHealthBenefitsState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    delta_te = e.length * (1 / trip.cyclist.speed) * ((1 / new_speed_penalty) - (1 / current_speed_penalty))
     beta = trip.beta
     P_0 = trip.p_bike_0 / (trip.p_bike_0 + trip.p_other)
     p_t = exp(trip.beta * shortest_path_state.felt_length[trip.destination])
@@ -171,52 +233,67 @@ function _weighted_trip_load(_::TravelTimeBenefitsHealthBenefitsState, trip, sho
     n = P_t / P_0 * n_0
     lambda = shortest_path_state.data_aggregator.real_distance.on_all[trip.destination]
     delta_CS = trip.vot * 0.5 * (beta*n*(trip.t_0-shortest_path_state.felt_length[trip.destination])*(P_t-1) + (n_0+n))
-    delat_HB = trip.cyclist.value_hb * beta * n * lambda * (P_t-1)
-    return (delta_CS + delat_HB) * delta_te
+    delta_HB = trip.cyclist.value_hb * beta * n * lambda * (P_t-1)
+    return (delta_CS + delta_HB) * delta_te
 end
-function _weighted_trip_load(_::TravelTimeBenefitsHealthBenefitsCostState, trip, shortest_path_state, e, penalty_weight)
-    delta_te = e.length * (1 / trip.cyclist.speed) * ((1 / penalty_weight) - 1)
+function _weighted_trip_load(_::TravelTimeAndHealthBenefitsPerCostState, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
+    delta_te = e.length * (1 / trip.cyclist.speed) * ((1 / new_speed_penalty) - (1 / current_speed_penalty))
     beta = trip.beta
     P_0 = trip.p_bike_0 / (trip.p_bike_0 + trip.p_other)
     p_t = exp(trip.beta * shortest_path_state.felt_length[trip.destination])
     P_t = p_t / (p_t + trip.p_other)
     n_0 = trip.number_of_users
     n = P_t / P_0 * n_0
-    l = shortest_path_state.data_aggregator.real_distance.on_all[trip.destination]
+    lambda = shortest_path_state.data_aggregator.real_distance.on_all[trip.destination]
     delta_CS = trip.vot * 0.5 * (beta*n*(trip.t_0-shortest_path_state.felt_length[trip.destination])*(P_t-1) + (n_0+n))
-    delat_HB = trip.cyclist.value_hb * beta * n * l * (P_t-1)
-    return (delta_CS + delat_HB) * delta_te
+    delta_HB = trip.cyclist.value_hb * beta * n * lambda * (P_t-1)
+    return (delta_CS + delta_HB) * delta_te
 end
 
 const MINSTATES_WITH_GRAPH = Union{
-    MinPenaltyWeightedCyclistsState,
-    MinPenaltyCostWeightedCyclistsState,
-    MinPenaltyLengthWeightedCyclistsState,
-    MinPenaltyLengthCostWeightedCyclistsState,
+    CyclistsLengthNormedState,
+    NormalizedTravelTimePenaltyState,
+    TotalTravelTimeEstimationState,
+    TotalTravelTimeEstimationPerLengthState,
+    TotalTravelTimeEstimationPerCostState,
+    TotalTravelTimeEstimationCappedState,
+    TotalTravelTimeEstimationCappedPerLengthState,
+    TotalTravelTimeEstimationCappedPerCostState,
+    TotalTravelTimeEstimationUncappedState,
     TravelTimeBenefitsState,
-    TravelTimeBenefitsCostState,
+    TravelTimeBenefitsPerCostState,
     TravelTimeBenefitsHealthBenefitsState,
-    TravelTimeBenefitsHealthBenefitsCostState
+    TravelTimeAndHealthBenefitsPerCostState
 }
 const MINMODES_WITH_GRAPH = Union{
-    MinPenaltyWeightedCyclists,
-    MinPenaltyCostWeightedCyclists,
-    MinPenaltyLengthWeightedCyclists,
-    MinPenaltyLengthCostWeightedCyclists,
+    CyclistsLengthNormed,
+    NormalizedTravelTimePenalty,
+    TotalTravelTimeEstimation,
+    TotalTravelTimeEstimationPerLength,
+    TotalTravelTimeEstimationPerCost,
+    TotalTravelTimeEstimationCapped,
+    TotalTravelTimeEstimationCappedPerLength,
+    TotalTravelTimeEstimationCappedPerCost,
+    TotalTravelTimeEstimationUncapped,
     TravelTimeBenefits,
-    TravelTimeBenefitsCost,
+    TravelTimeBenefitsPerCost,
     TravelTimeBenefitsHealthBenefits,
-    TravelTimeBenefitsHealthBenefitsCost
+    TravelTimeAndHealthBenefitsPerCost
 }
 const MINMODES_TO_MINSTATES_WITH_GRAPH = Dict(
-    MinPenaltyWeightedCyclists => MinPenaltyWeightedCyclistsState,
-    MinPenaltyCostWeightedCyclists => MinPenaltyCostWeightedCyclistsState,
-    MinPenaltyLengthWeightedCyclists => MinPenaltyLengthWeightedCyclistsState,
-    MinPenaltyLengthCostWeightedCyclists => MinPenaltyLengthCostWeightedCyclistsState,
+    CyclistsLengthNormed => CyclistsLengthNormedState,
+    NormalizedTravelTimePenalty => NormalizedTravelTimePenaltyState,
+    TotalTravelTimeEstimation => TotalTravelTimeEstimationState,
+    TotalTravelTimeEstimationPerLength => TotalTravelTimeEstimationPerLengthState,
+    TotalTravelTimeEstimationPerCost => TotalTravelTimeEstimationPerCostState,
+    TotalTravelTimeEstimationCapped => TotalTravelTimeEstimationCappedState,
+    TotalTravelTimeEstimationCappedPerLength => TotalTravelTimeEstimationCappedPerLengthState,
+    TotalTravelTimeEstimationCappedPerCost => TotalTravelTimeEstimationCappedPerCostState,
+    TotalTravelTimeEstimationUncapped => TotalTravelTimeEstimationUncappedState,
     TravelTimeBenefits => TravelTimeBenefitsState,
-    TravelTimeBenefitsCost => TravelTimeBenefitsCostState,
+    TravelTimeBenefitsPerCost => TravelTimeBenefitsPerCostState,
     TravelTimeBenefitsHealthBenefits => TravelTimeBenefitsHealthBenefitsState,
-    TravelTimeBenefitsHealthBenefitsCost => TravelTimeBenefitsHealthBenefitsCostState,
+    TravelTimeAndHealthBenefitsPerCost => TravelTimeAndHealthBenefitsPerCostState,
 )
 
 function init_minmode_state(_::AlgorithmConfig{T}, shortest_path_states, g::Graph) where {T<:MINMODES_WITH_GRAPH}
@@ -240,8 +317,9 @@ function path_loads(state::MINSTATES_WITH_GRAPH, shortest_path_state)
         while dst != trip.origin
             src = shortest_path_state.predecessor[dst]
             e = state.g.edges[(src, dst)]
-            penalty_weight = car_penalty(e, trip.cyclist)
-            loads[src, dst] += _weighted_trip_load(state, trip, shortest_path_state, e, penalty_weight)
+            new_speed_penalty = slope_penalty(e, trip.cyclist) * car_penalty(e, trip.cyclist)
+            current_speed_penalty = slope_penalty(e, trip.cyclist) * car_penalty(e, trip.cyclist; check_bp=true)
+            loads[src, dst] += _weighted_trip_load(state, trip, shortest_path_state, e, current_speed_penalty, new_speed_penalty)
             dst = src
         end
     end
@@ -256,20 +334,48 @@ function set_path_loads!(state::MINSTATES_WITH_GRAPH, path_id, path_loads)
     return state
 end
 
-# MARK: MinTotalDetourState
-struct MinTotalDetourState{T<:AbstractGraph} <: AbstractMinmodeState
+# MARK: TotalDetourState
+struct TotalDetourState{T<:AbstractGraph} <: AbstractMinmodeState
+    aggregated_detours::SparseMatrixCSC{Float64,Int64}
+    individual_detours::Vector{SparseMatrixCSC{Float64,Int64}}
+    algorithm_config::AlgorithmConfig
+    g::T
+end
+struct TotalDetourPerLengthState{T<:AbstractGraph} <: AbstractMinmodeState
+    aggregated_detours::SparseMatrixCSC{Float64,Int64}
+    individual_detours::Vector{SparseMatrixCSC{Float64,Int64}}
+    algorithm_config::AlgorithmConfig
+    g::T
+end
+struct TotalDetourPerCostState{T<:AbstractGraph} <: AbstractMinmodeState
     aggregated_detours::SparseMatrixCSC{Float64,Int64}
     individual_detours::Vector{SparseMatrixCSC{Float64,Int64}}
     algorithm_config::AlgorithmConfig
     g::T
 end
 
-function init_minmode_state(alg_conf::AlgorithmConfig{MinTotalDetour}, shortest_path_states, g::Graph)
+const MINSTATES_TOTAL_DETOUR = Union{
+    TotalDetourState,
+    TotalDetourPerLengthState,
+    TotalDetourPerCostState,
+}
+const MINMODES_TOTAL_DETOUR = Union{
+    TotalDetour,
+    TotalDetourPerLength,
+    TotalDetourPerCost,
+}
+const MINMODES_TO_MINSTATES_TOTAL_DETOUR = Dict(
+    TotalDetour => TotalDetourState,
+    TotalDetourPerLength => TotalDetourPerLengthState,
+    TotalDetourPerCost => TotalDetourPerCostState,
+)
+
+function init_minmode_state(alg_conf::AlgorithmConfig{T}, shortest_path_states, g::Graph) where {T<:MINMODES_TOTAL_DETOUR}
     num_nodes = length(shortest_path_states[1].felt_length)
     aggregated_detours = spzeros(num_nodes, num_nodes)
     individual_detours = [spzeros(num_nodes, num_nodes) for _ in shortest_path_states]
 
-    minmode_state = MinTotalDetourState(aggregated_detours, individual_detours, alg_conf, g)
+    minmode_state = MINMODES_TO_MINSTATES_TOTAL_DETOUR[T](aggregated_detours, individual_detours, alg_conf, g)
 
     pbar = ProgressBar(collect(enumerate(shortest_path_states)), printing_delay=1.0)
     set_description(pbar, "Setting up minmode state")
@@ -302,7 +408,7 @@ function editable_elements(g::Graph)
     (MinLoadedEdge(k...) for (k, e) in edges(g) if !(e.edited || e.blocked))
 end
 
-# if we need to recalculate some paths for the MinTotalDetour minmode
+# if we need to recalculate some paths for the TotalDetour minmode
 function can_state_change_for_min_total_detour(shortest_path_state, current_edge_iter, algorithm_config)
     if algorithm_config.buildup
         return true
@@ -324,7 +430,7 @@ function can_state_change_for_min_total_detour(shortest_path_state, current_edge
     end
 end
 
-function path_loads(state::MinTotalDetourState, shortest_path_state)
+function path_loads(state::MINSTATES_TOTAL_DETOUR, shortest_path_state)
     len_before = sum(shortest_path_state.trips) do trip
         number_of_users(trip, shortest_path_state) * shortest_path_state.felt_length[trip.destination]
     end
@@ -363,7 +469,7 @@ function path_loads(state::MinTotalDetourState, shortest_path_state)
     return detours
 end
 
-function set_path_loads!(state::MinTotalDetourState, path_id, path_detours)
+function set_path_loads!(state::MINSTATES_TOTAL_DETOUR, path_id, path_detours)
     state.aggregated_detours .-= state.individual_detours[path_id]
     state.aggregated_detours .+= path_detours
 

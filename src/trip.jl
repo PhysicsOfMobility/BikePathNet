@@ -3,6 +3,8 @@ A trip from `origin` to `destination`, taken by `number_of_users` cyclists with 
 specified by a [`Cyclist`](@ref).
 """
 struct Trip
+    "unique id of the trip"
+    id::Int
     "`id` of origin [`Node`](@ref)"
     origin::Int
     "`id` of destination [`Node`](@ref)"
@@ -18,6 +20,7 @@ end
 number_of_users(t::Trip, _) = t.number_of_users
 trip_utility(trip::Trip, shortest_path_state) = -trip.number_of_users * shortest_path_state.felt_length[trip.destination]
 trip_consumer_surplus(trip::Trip, shortest_path_state) = trip.number_of_users * (trip.t_0 - shortest_path_state.felt_length[trip.destination])
+trip_max_penalty(trip, shortest_path_state) = (trip.t_0 - shortest_path_state.felt_length[trip.destination]) / shortest_path_state.felt_length[trip.destination]
 
 """
 A trip from `origin` to `destination`, taken by at least `number_of_users` cyclists with a profile
@@ -26,6 +29,8 @@ the current felt length of the trip compared to the felt length of the trip in t
 (see M. Paulsen and J. Rich, Transp. Res. B 190, 103095 (2024).)
 """
 struct VariableTrip
+    "unique id of the trip"
+    id::Int
     "`id` of origin [`Node`](@ref)"
     origin::Int
     "`id` of destination [`Node`](@ref)"
@@ -107,6 +112,7 @@ function load_trips(path::String, cyclists::Vector{Cyclist}, triptype::Type{Trip
     demand_json = parse_trips(path, cyclists)
 
     trips = Dict{Int,Vector{Trip}}()
+    u_trip_id = 1
     for ((origin, destination), loads) in demand_json
         if !haskey(trips, origin)
             trips[origin] = Trip[]
@@ -116,7 +122,8 @@ function load_trips(path::String, cyclists::Vector{Cyclist}, triptype::Type{Trip
             if !(load isa Number) 
                 load = load["number_of_users"]
             end
-            push!(trips[origin], Trip(origin, destination, load, cyclists[position], 0.0))
+            push!(trips[origin], Trip(u_trip_id, origin, destination, load, cyclists[position], 0.0))
+            u_trip_id += 1
         end
     end
     return trips
@@ -126,6 +133,7 @@ function load_trips(path::String, cyclists::Vector{Cyclist}, ::Type{VariableTrip
     demand_json = parse_trips(path, cyclists)
 
     trips = Dict{Int,Vector{VariableTrip}}()
+    u_trip_id = 1
     for ((origin, destination), demand_infos) in demand_json
         if !haskey(trips, origin)
             trips[origin] = VariableTrip[]
@@ -133,6 +141,7 @@ function load_trips(path::String, cyclists::Vector{Cyclist}, ::Type{VariableTrip
         for (cyclist_id, demand_info) in demand_infos
             position = findfirst(c -> c.id == cyclist_id, cyclists)
             trip = VariableTrip(
+                u_trip_id,
                 origin,
                 destination,
                 demand_info["number_of_users"],
@@ -144,6 +153,7 @@ function load_trips(path::String, cyclists::Vector{Cyclist}, ::Type{VariableTrip
                 demand_info["p_other"],
                 demand_info["vot"])
             push!(trips[origin], trip)
+            u_trip_id += 1
         end
     end
     return trips

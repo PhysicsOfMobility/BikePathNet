@@ -16,7 +16,11 @@ function car_penalty(edge, cyclist; check_bp=false)
     if check_bp && edge.bike_path
         return 1.0
     else
-        return cyclist.car_penalty[edge.street_type]
+        if edge.ex_inf
+            return 1.0
+        else
+            return cyclist.car_penalty[edge.street_type]
+        end
     end
 end
 

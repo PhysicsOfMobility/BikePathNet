@@ -77,10 +77,10 @@ function calculate_optimal_comparison_state(g, trips, algo_config)
         use_existing_infrastructure=false,
         use_blocked_streets=false,
         add_blocked_streets=[(-1,-1)],
-        use_bike_highways=false,    # TODO: add config/switch for bike highways
+        use_bike_highways=false,
         save_edge_loads=false,
         undirected=false,
-        minmode=MinPureCyclists(),
+        minmode=PureCyclists(),
         beta=algo_config.beta,
     )
 
@@ -148,10 +148,10 @@ function calculate_base_comparison_state(g, trips, algo_config)
         use_existing_infrastructure=false,
         use_blocked_streets=false,
         add_blocked_streets=[(-1,-1)],
-        use_bike_highways=false,    # TODO: add config/switch for bike highways
+        use_bike_highways=algo_config.use_bike_highways,
         save_edge_loads=false,
         undirected=false,
-        minmode=MinPureCyclists(),
+        minmode=PureCyclists(),
         beta=algo_config.beta,
     )
 
@@ -233,7 +233,7 @@ function calculate_comparison_state(g, trips, algorithm_config, bike_paths)
     @assert algorithm_config.buildup == false "buildup has to be false for the comparison state"
     @assert algorithm_config.save_edge_loads == false "save_edge_loads should be false for the comparison state"
     @assert algorithm_config.undirected == false "undirected should be false for the comparison state"
-    @assert algorithm_config.minmode == MinPureCyclists() "minmode should be MinPureCyclists for the comparison state"
+    @assert algorithm_config.minmode == PureCyclists() "minmode should be PureCyclists for the comparison state"
 
     trips = set_baseline_demand(trips, g, algorithm_config)
 

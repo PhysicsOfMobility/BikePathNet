@@ -101,13 +101,14 @@ function minimal_loaded_edge(g::Graph, minstate, algorithm_config)
         e = g.edges[k]
         (e.edited || e.blocked) && continue
         next_load = _edge_load(e, minstate)
+        next_load = isnan(next_load) ? algorithm_config.buildup ? -Inf : Inf : next_load
         if algorithm_config.buildup
-            if next_load > best_load
+            if next_load >= best_load
                 best_edge = k
                 best_load = next_load
             end
         else
-            if next_load < best_load
+            if next_load <= best_load
                 best_edge = k
                 best_load = next_load
             end
@@ -136,27 +137,41 @@ Aggregation of the individual (edge-) loads is done in [`minimal_loaded_segment`
 """
 function _edge_load end
 
-_edge_load(e, minstate::MinPureCyclistsState) = minstate.aggregated_loads[e.source, e.destination]
-_edge_load(e, seg, minstate::MinPureCyclistsState) = _edge_load(e, minstate)
-_edge_load(e, minstate::MinPenaltyWeightedCyclistsState) = minstate.aggregated_loads[e.source, e.destination]
-_edge_load(e, seg, minstate::MinPenaltyWeightedCyclistsState) = _edge_load(e, minstate)
-_edge_load(e, minstate::MinPenaltyCostWeightedCyclistsState) = minstate.aggregated_loads[e.source, e.destination] / e.cost
-_edge_load(e, seg, minstate::MinPenaltyCostWeightedCyclistsState) = minstate.aggregated_loads[e.source, e.destination] / seg.cost
-_edge_load(e, minstate::MinPenaltyLengthWeightedCyclistsState) = minstate.aggregated_loads[e.source, e.destination]
-_edge_load(e, seg, minstate::MinPenaltyLengthWeightedCyclistsState) = _edge_load(e, minstate)
-_edge_load(e, minstate::MinPenaltyLengthCostWeightedCyclistsState) = minstate.aggregated_loads[e.source, e.destination] / e.length
-_edge_load(e, seg, minstate::MinPenaltyLengthCostWeightedCyclistsState) = minstate.aggregated_loads[e.source, e.destination] / seg.length
+_edge_load(e, minstate::PureCyclistsState) = minstate.aggregated_loads[e.source, e.destination]
+_edge_load(e, seg, minstate::PureCyclistsState) = _edge_load(e, minstate)
+_edge_load(e, minstate::CyclistsLengthNormedState) = minstate.aggregated_loads[e.source, e.destination] / e.length
+_edge_load(e, seg, minstate::CyclistsLengthNormedState) = _edge_load(e, minstate) / seg.length
+_edge_load(e, minstate::NormalizedTravelTimePenaltyState) = minstate.aggregated_loads[e.source, e.destination] / e.length
+_edge_load(e, seg, minstate::NormalizedTravelTimePenaltyState) = minstate.aggregated_loads[e.source, e.destination] / seg.length
+_edge_load(e, minstate::TotalTravelTimeEstimationUncappedState) = minstate.aggregated_loads[e.source, e.destination]
+_edge_load(e, seg, minstate::TotalTravelTimeEstimationUncappedState) = _edge_load(e, minstate)
+_edge_load(e, minstate::TotalTravelTimeEstimationState) = minstate.aggregated_loads[e.source, e.destination]
+_edge_load(e, seg, minstate::TotalTravelTimeEstimationState) = _edge_load(e, minstate)
+_edge_load(e, minstate::TotalTravelTimeEstimationPerLengthState) = minstate.aggregated_loads[e.source, e.destination] / e.length
+_edge_load(e, seg, minstate::TotalTravelTimeEstimationPerLengthState) = _edge_load(e, minstate) / seg.length
+_edge_load(e, minstate::TotalTravelTimeEstimationPerCostState) = minstate.aggregated_loads[e.source, e.destination]  / e.cost
+_edge_load(e, seg, minstate::TotalTravelTimeEstimationPerCostState) = _edge_load(e, minstate)  / seg.cost
+_edge_load(e, minstate::TotalTravelTimeEstimationCappedState) = minstate.aggregated_loads[e.source, e.destination]
+_edge_load(e, seg, minstate::TotalTravelTimeEstimationCappedState) = _edge_load(e, minstate)
+_edge_load(e, minstate::TotalTravelTimeEstimationCappedPerLengthState) = minstate.aggregated_loads[e.source, e.destination] / e.length
+_edge_load(e, seg, minstate::TotalTravelTimeEstimationCappedPerLengthState) = _edge_load(e, minstate) / seg.length
+_edge_load(e, minstate::TotalTravelTimeEstimationCappedPerCostState) = minstate.aggregated_loads[e.source, e.destination]  / e.cost
+_edge_load(e, seg, minstate::TotalTravelTimeEstimationCappedPerCostState) = _edge_load(e, minstate)  / seg.cost
 _edge_load(e, minstate::TravelTimeBenefitsState) = minstate.aggregated_loads[e.source, e.destination]
 _edge_load(e, seg, minstate::TravelTimeBenefitsState) = _edge_load(e, minstate)
-_edge_load(e, minstate::TravelTimeBenefitsCostState) = minstate.aggregated_loads[e.source, e.destination] / e.cost
-_edge_load(e, seg, minstate::TravelTimeBenefitsCostState) = minstate.aggregated_loads[e.source, e.destination] / seg.cost
+_edge_load(e, minstate::TravelTimeBenefitsPerCostState) = minstate.aggregated_loads[e.source, e.destination] / e.cost
+_edge_load(e, seg, minstate::TravelTimeBenefitsPerCostState) = minstate.aggregated_loads[e.source, e.destination] / seg.cost
 _edge_load(e, minstate::TravelTimeBenefitsHealthBenefitsState) = minstate.aggregated_loads[e.source, e.destination]
 _edge_load(e, seg, minstate::TravelTimeBenefitsHealthBenefitsState) = _edge_load(e, minstate)
-_edge_load(e, minstate::TravelTimeBenefitsHealthBenefitsCostState) = minstate.aggregated_loads[e.source, e.destination] / e.cost
-_edge_load(e, seg, minstate::TravelTimeBenefitsHealthBenefitsCostState) = minstate.aggregated_loads[e.source, e.destination] / seg.cost
+_edge_load(e, minstate::TravelTimeAndHealthBenefitsPerCostState) = minstate.aggregated_loads[e.source, e.destination] / e.cost
+_edge_load(e, seg, minstate::TravelTimeAndHealthBenefitsPerCostState) = minstate.aggregated_loads[e.source, e.destination] / seg.cost
 
-_edge_load(e, minstate::MinTotalDetourState) = minstate.aggregated_detours[e.source, e.destination]
-_edge_load(e, seg, minstate::MinTotalDetourState) = minstate.aggregated_detours[e.source, e.destination]
+_edge_load(e, minstate::TotalDetourState) = minstate.aggregated_detours[e.source, e.destination]
+_edge_load(e, seg, minstate::TotalDetourState) = minstate.aggregated_detours[e.source, e.destination]
+_edge_load(e, minstate::TotalDetourPerLengthState) = minstate.aggregated_detours[e.source, e.destination] / e.length
+_edge_load(e, seg, minstate::TotalDetourPerLengthState) = minstate.aggregated_detours[e.source, e.destination] / seg.length
+_edge_load(e, minstate::TotalDetourPerCostState) = minstate.aggregated_detours[e.source, e.destination] / e.cost
+_edge_load(e, seg, minstate::TotalDetourPerCostState) = minstate.aggregated_detours[e.source, e.destination] / seg.cost
 
 _edge_load(e, minstate::FixedOrderMinmodeState) = minstate.aggregated_loads[e.source, e.destination]
 _edge_load(e, seg, minstate::FixedOrderMinmodeState) = _edge_load(e, minstate)
@@ -171,7 +186,7 @@ end
 
 """
 Un-Edits the [`Edge`](@ref) in `e` by flipping the `bike_path` and setting `edited` to `false`.
-Used to reset an edit when calculating the [`MinTotalDetour`](@ref) minmode.
+Used to reset an edit when calculating the [`TotalDetour`](@ref) minmode.
 """
 function edit_edge_back!(e)
     e.edited = false

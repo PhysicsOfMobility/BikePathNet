@@ -219,7 +219,11 @@ function handle_first_used!(result, g, min_loaded_element, algorithm_config)
     for e in result.edited_edges
         push!(result.unused_edges, e)
     end
-    cut = ne(g) - length(result.unused_edges)
+    if algorithm_config.use_bike_highways
+       cut = sum([!e.ramp ? 1 : 0 for (k, e) in edges(g)]) - length(result.unused_edges)
+    else
+        cut = ne(g) - length(result.unused_edges)
+    end
     result.cut = cut
     @info "First used bike path (id: $(to_gains_key(min_loaded_element))) after $(length(result.unused_edges)) iterations."
 end
@@ -243,10 +247,12 @@ function log_progress(bike_path_percentage, next_log, buildup, start_time)
     if buildup && bike_path_percentage > next_log
         timedelta = canonicalize(round(now() - start_time, Dates.Second(1)))
         @info "Reached $next_log BPP (buildup) after $(timedelta)"
+        # @sync GC.gc()
         return true
     elseif !buildup && bike_path_percentage < next_log
         timedelta = canonicalize(round(now() - start_time, Dates.Second(1)))
         @info "Reached $next_log BPP (removing) after $(timedelta)"
+        # @sync GC.gc()
         return true
     else
         return false
@@ -265,7 +271,6 @@ function can_state_change(path_edge_load, current_edge_iter, algorithm_config)
     else
         # if more than no people use the edge, we have to redo the routing
         return mapreduce(e -> path_edge_load[e.source, e.destination] > 0, |, current_edge_iter)
-        # TODO: what about undirected?
     end
 end
 
@@ -296,9 +301,8 @@ function core_algorithm(g, trips, algorithm_config; start_time=now())
     # setup all shortest path states, one for each cyclist and origin in trips
     @info "Initial calculation started."
     shortest_path_states = create_shortest_path_states(g, trips)
-
     # setup load tracking
-    pure_config = @set algorithm_config.minmode = MinPureCyclists()
+    pure_config = @set algorithm_config.minmode = PureCyclists()
     path_edge_loads = init_minmode_state(pure_config, shortest_path_states, g)
     weighted_path_edge_loads = init_minmode_state(algorithm_config, shortest_path_states, g)
 

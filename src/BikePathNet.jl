@@ -95,11 +95,12 @@ export prepare_graph!
 include("penalties.jl")
 
 include("minmodes.jl")
-export MinPureCyclists, MinPenaltyWeightedCyclists, MinTotalDetour
-export MinPenaltyCostWeightedCyclists, MinPenaltyLengthWeightedCyclists
-export MinPenaltyLengthCostWeightedCyclists
-export TravelTimeBenefits, TravelTimeBenefitsCost
-export TravelTimeBenefitsHealthBenefits, TravelTimeBenefitsHealthBenefitsCost
+export PureCyclists, CyclistsLengthNormed
+export NormalizedTravelTimePenalty
+export TotalTravelTimeEstimation, TotalTravelTimeEstimationCapped, TotalTravelTimeEstimationPerLength, TotalTravelTimeEstimationCappedPerLength, TotalTravelTimeEstimationPerCost, TotalTravelTimeEstimationCappedPerCost, TotalTravelTimeEstimationUncapped
+export TravelTimeBenefits, TravelTimeBenefitsPerCost
+export TravelTimeBenefitsHealthBenefits, TravelTimeAndHealthBenefitsPerCost
+export TotalDetour, TotalDetourPerLength, TotalDetourPerCost
 
 include("params_io.jl")
 
